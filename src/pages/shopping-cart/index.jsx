@@ -17,13 +17,11 @@ const ShoppingCart = () => {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   useEffect(() => {
-    // Load cart data from service
     const loadCartData = () => {
       setIsLoading(true);
       const cart = cartService.getCart();
       setCartItems(cart);
 
-      // Load saved items from localStorage
       const savedItemsData = localStorage.getItem('savedItems');
       if (savedItemsData) {
         setSavedItems(JSON.parse(savedItemsData));
@@ -34,7 +32,6 @@ const ShoppingCart = () => {
 
     loadCartData();
 
-    // Subscribe to cart changes
     const unsubscribe = cartService.subscribe((updatedCart) => {
       setCartItems(updatedCart);
     });
@@ -105,21 +102,14 @@ const ShoppingCart = () => {
 
   const handleProceedToCheckout = async () => {
     setIsCheckoutLoading(true);
-
-    // Simulate checkout preparation
     await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Store cart data for checkout
     localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
-
-    // Navigate to checkout
     window.location.href = '/checkout-process';
   };
 
-  // Calculate totals
   const subtotal = cartService.getSubtotal();
   const shipping = subtotal > 75 ? 0 : 9.99;
-  const tax = subtotal * 0.08; // 8% tax
+  const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
   if (isLoading) {
@@ -147,18 +137,20 @@ const ShoppingCart = () => {
     );
   }
 
+  const pageTitle = `Shopping Cart (${cartItems.length}) - WatchHub`;
+
   return (
     <>
       <Helmet>
-        <title>Shopping Cart ({cartItems.length}) - WatchHub</title>
+        <title>{pageTitle}</title>
         <meta name="description" content="Review and manage your cart items before checkout" />
       </Helmet>
+
       <div className="min-h-screen bg-background">
         <Header />
 
         <main className="pt-20 pb-8">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-            {/* Page Header */}
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -188,7 +180,6 @@ const ShoppingCart = () => {
               <EmptyCart />
             ) : (
               <>
-                {/* Inventory Alerts */}
                 <InventoryAlert
                   unavailableItems={unavailableItems}
                   onRemoveUnavailable={handleRemoveUnavailable}
@@ -196,7 +187,6 @@ const ShoppingCart = () => {
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Cart Items */}
                   <div className="lg:col-span-2">
                     <div className="space-y-4">
                       {cartItems.map((item) => (
@@ -210,7 +200,6 @@ const ShoppingCart = () => {
                       ))}
                     </div>
 
-                    {/* Saved Items */}
                     <SavedItems
                       savedItems={savedItems}
                       onMoveToCart={handleMoveToCart}
@@ -218,7 +207,6 @@ const ShoppingCart = () => {
                     />
                   </div>
 
-                  {/* Order Summary */}
                   <div className="lg:col-span-1">
                     <div className="sticky top-24">
                       <OrderSummary
