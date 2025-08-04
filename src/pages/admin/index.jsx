@@ -115,7 +115,8 @@ const AdminPanel = () => {
         stock: parseInt(formData?.stock),
         features: formData?.features?.split(',')?.map(f => f?.trim())?.filter(f => f),
         status: formData?.status,
-        created_by: user?.id
+        created_by: user?.id,
+        rating: 4.5 // Default rating for new products
       };
 
       let result;

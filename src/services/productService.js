@@ -84,7 +84,15 @@ export const productService = {
 
   // Admin: Create product
   async createProduct(product) {
-    const { data, error } = await supabase?.from('products')?.insert([product])?.select(`
+    // Generate a unique ID for the product
+    const productWithId = {
+      ...product,
+      id: Date.now(), // Simple ID generation, you can use UUID if needed
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase?.from('products')?.insert([productWithId])?.select(`
         *,
         brand:brands(id, name, slug),
         category:categories(id, name, slug, icon)
@@ -99,7 +107,12 @@ export const productService = {
 
   // Admin: Update product
   async updateProduct(id, updates) {
-    const { data, error } = await supabase?.from('products')?.update(updates)?.eq('id', id)?.select(`
+    const updatesWithTimestamp = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase?.from('products')?.update(updatesWithTimestamp)?.eq('id', id)?.select(`
         *,
         brand:brands(id, name, slug),
         category:categories(id, name, slug, icon)

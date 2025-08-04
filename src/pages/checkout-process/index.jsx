@@ -220,11 +220,11 @@ const CheckoutProcess = () => {
 
   const handleCompleteOrder = async () => {
     setIsProcessing(true);
-    
+
     // Simulate payment processing
     try {
       await new Promise(resolve => setTimeout(resolve, 3000));
-      
+
       // Store order data for confirmation page
       const orderData = {
         orderNumber: `WH${Date.now()}`,
@@ -241,10 +241,10 @@ const CheckoutProcess = () => {
         },
         estimatedDelivery: new Date(Date.now() + (selectedDeliveryOption.id === 'overnight' ? 1 : selectedDeliveryOption.id === 'express' ? 3 : 7) * 24 * 60 * 60 * 1000)
       };
-      
+
       localStorage.setItem('lastOrder', JSON.stringify(orderData));
       localStorage.setItem('cartCount', '0'); // Clear cart
-      
+
       navigate('/order-confirmation');
     } catch (error) {
       console.error('Payment failed:', error);
