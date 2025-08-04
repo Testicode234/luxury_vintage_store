@@ -4,12 +4,12 @@ import Button from '../../../components/ui/Button';
 
 const StickyAddToCart = ({ 
   product, 
-  quantity, 
   selectedSize, 
   selectedColor, 
-  onAddToCart, 
-  isAddingToCart,
-  isVisible 
+  quantity, 
+  onQuantityChange,
+  onAddToCart,
+  isAddingToCart
 }) => {
   if (!isVisible) return null;
 

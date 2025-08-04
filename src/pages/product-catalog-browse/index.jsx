@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import Header from '../../components/ui/Header';
 import FilterChips from './components/FilterChips';
+import FilterSidebar from './components/FilterSidebar';
 import SortDropdown from './components/SortDropdown';
 import ProductGrid from './components/ProductGrid';
 import LoadMoreButton from './components/LoadMoreButton';
@@ -230,9 +231,44 @@ const ProductCatalogBrowse = () => {
       <main className="pt-16 lg:pt-20">
         <div className="w-full">
           <div className="flex">
+            {/* Filter Sidebar - Desktop */}
+            <div className="hidden lg:block w-80 flex-shrink-0">
+              <div className="sticky top-20 p-6">
+                <FilterSidebar
+                  categories={categoriesWithCounts?.filter(cat => cat?.count > 0)}
+                  brands={brandsWithCounts?.filter(brand => brand?.count > 0)}
+                  ratings={ratings}
+                  priceRange={priceRange}
+                  activeFilters={activeFilters}
+                  activeBrands={activeBrands}
+                  activeRating={activeRating}
+                  onFilterToggle={handleFilterToggle}
+                  onBrandToggle={handleBrandToggle}
+                  onRatingSelect={setActiveRating}
+                  onPriceRangeChange={setPriceRange}
+                  onClearAll={handleClearAllFilters}
+                />
+              </div>
+            </div>
 
-
-            
+            {/* Mobile Filter Sidebar */}
+            <FilterSidebar
+              categories={categoriesWithCounts?.filter(cat => cat?.count > 0)}
+              brands={brandsWithCounts?.filter(brand => brand?.count > 0)}
+              ratings={ratings}
+              priceRange={priceRange}
+              activeFilters={activeFilters}
+              activeBrands={activeBrands}
+              activeRating={activeRating}
+              onFilterToggle={handleFilterToggle}
+              onBrandToggle={handleBrandToggle}
+              onRatingSelect={setActiveRating}
+              onPriceRangeChange={setPriceRange}
+              onClearAll={handleClearAllFilters}
+              isOpen={isFilterSidebarOpen}
+              onClose={() => setIsFilterSidebarOpen(false)}
+              isMobile
+            />
 
             {/* Main Content */}
             <div className="flex-1 min-w-0">

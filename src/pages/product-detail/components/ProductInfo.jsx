@@ -2,28 +2,44 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
-const ProductInfo = ({ product, onAddToCart, onAddToWishlist, isInWishlist }) => {
-  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || null);
-  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] || null);
-  const [quantity, setQuantity] = useState(1);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
+const ProductInfo = ({
+  product,
+  selectedSize,
+  onSizeChange,
+  selectedColor,
+  onColorChange,
+  quantity,
+  onQuantityChange,
+  isInWishlist,
+  onAddToWishlist,
+  onAddToCart,
+  isAddingToCart
+}) => {
+  const [internalSelectedSize, setInternalSelectedSize] = useState(product?.sizes?.[0] || null);
+  const [internalSelectedColor, setInternalSelectedColor] = useState(product?.colors?.[0] || null);
+  const [internalQuantity, setInternalQuantity] = useState(1);
+  // Removed isAddingToCart from local state as it's now a prop
 
   const handleQuantityChange = (change) => {
-    const newQuantity = quantity + change;
+    const newQuantity = internalQuantity + change;
     if (newQuantity >= 1 && newQuantity <= product?.stock) {
-      setQuantity(newQuantity);
+      setInternalQuantity(newQuantity);
+      if (onQuantityChange) {
+        onQuantityChange(newQuantity);
+      }
     }
   };
 
-  const handleAddToCart = async () => {
-    setIsAddingToCart(true);
-    await onAddToCart({
-      ...product,
-      selectedSize,
-      selectedColor,
-      quantity
-    });
-    setIsAddingToCart(false);
+  const handleAddToCartClick = async () => {
+    // Use the prop onAddToCart and pass the required data
+    if (onAddToCart) {
+      await onAddToCart({
+        ...product,
+        selectedSize: internalSelectedSize,
+        selectedColor: internalSelectedColor,
+        quantity: internalQuantity
+      });
+    }
   };
 
   const renderStars = (rating) => {
@@ -88,7 +104,7 @@ const ProductInfo = ({ product, onAddToCart, onAddToWishlist, isInWishlist }) =>
       </div>
       {/* Product Description */}
       <div>
-        <h3 className="text-lg font-medium text-foreground mb-2">Description</h3>
+        <h3 className="text-lg font-medium text-foreground mb-3">Description</h3>
         <p className="text-muted-foreground leading-relaxed">
           {product?.description}
         </p>
@@ -101,9 +117,12 @@ const ProductInfo = ({ product, onAddToCart, onAddToWishlist, isInWishlist }) =>
             {product?.sizes?.map((size) => (
               <button
                 key={size}
-                onClick={() => setSelectedSize(size)}
+                onClick={() => {
+                  setInternalSelectedSize(size);
+                  if (onSizeChange) onSizeChange(size);
+                }}
                 className={`px-4 py-2 border rounded-lg text-sm font-medium transition-smooth ${
-                  selectedSize === size
+                  internalSelectedSize === size
                     ? 'border-accent bg-accent text-accent-foreground'
                     : 'border-border text-foreground hover:border-muted-foreground'
                 }`}
@@ -122,9 +141,12 @@ const ProductInfo = ({ product, onAddToCart, onAddToWishlist, isInWishlist }) =>
             {product?.colors?.map((color) => (
               <button
                 key={color?.name}
-                onClick={() => setSelectedColor(color)}
+                onClick={() => {
+                  setInternalSelectedColor(color);
+                  if (onColorChange) onColorChange(color);
+                }}
                 className={`px-4 py-2 border rounded-lg text-sm font-medium transition-smooth ${
-                  selectedColor?.name === color?.name
+                  internalSelectedColor?.name === color?.name
                     ? 'border-accent bg-accent text-accent-foreground'
                     : 'border-border text-foreground hover:border-muted-foreground'
                 }`}
@@ -147,17 +169,17 @@ const ProductInfo = ({ product, onAddToCart, onAddToWishlist, isInWishlist }) =>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => handleQuantityChange(-1)}
-            disabled={quantity <= 1}
+            disabled={internalQuantity <= 1}
             className="w-10 h-10 border border-border rounded-lg flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-smooth"
           >
             <Icon name="Minus" size={16} />
           </button>
           <span className="text-lg font-medium text-foreground min-w-[3rem] text-center">
-            {quantity}
+            {internalQuantity}
           </span>
           <button
             onClick={() => handleQuantityChange(1)}
-            disabled={quantity >= product?.stock}
+            disabled={internalQuantity >= product?.stock}
             className="w-10 h-10 border border-border rounded-lg flex items-center justify-center text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-smooth"
           >
             <Icon name="Plus" size={16} />
@@ -167,7 +189,7 @@ const ProductInfo = ({ product, onAddToCart, onAddToWishlist, isInWishlist }) =>
       {/* Action Buttons */}
       <div className="space-y-3">
         <Button
-          onClick={handleAddToCart}
+          onClick={handleAddToCartClick}
           disabled={product?.stock === 0 || isAddingToCart}
           loading={isAddingToCart}
           fullWidth
@@ -175,7 +197,7 @@ const ProductInfo = ({ product, onAddToCart, onAddToWishlist, isInWishlist }) =>
         >
           {product?.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
         </Button>
-        
+
         <div className="flex space-x-3">
           <Button
             variant="outline"
@@ -187,7 +209,7 @@ const ProductInfo = ({ product, onAddToCart, onAddToWishlist, isInWishlist }) =>
           >
             {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
           </Button>
-          
+
           <Button
             variant="outline"
             iconName="Share"

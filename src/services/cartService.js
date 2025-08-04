@@ -96,4 +96,7 @@ class CartService {
   }
 }
 
+// Export a singleton instance
+export const cartService = new CartService();
+
 export const cartService = new CartService();

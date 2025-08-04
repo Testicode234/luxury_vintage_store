@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { cartService } from '../../services/cartService';
 import Button from './Button';
 import Input from './Input';
 import Icon from '../AppIcon';
@@ -10,6 +11,19 @@ const Header = () => {
   const { user, userProfile, signOut, isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    // Initialize cart count
+    setCartCount(cartService.getItemCount());
+
+    // Subscribe to cart changes
+    const unsubscribe = cartService.subscribe(() => {
+      setCartCount(cartService.getItemCount());
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleSearch = (e) => {
     e?.preventDefault();
@@ -64,10 +78,15 @@ const Header = () => {
               </Link>
               <Link
                 to="/shopping-cart"
-                className="text-gray-700 hover:text-primary transition-colors flex items-center space-x-1"
+                className="text-gray-700 hover:text-primary transition-colors flex items-center space-x-1 relative"
               >
                 <Icon name="ShoppingCart" size={18} />
                 <span>Cart</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             </nav>
 
@@ -139,10 +158,17 @@ const Header = () => {
               </Link>
               <Link
                 to="/shopping-cart"
-                className="block text-gray-700 hover:text-primary transition-colors"
+                className="block text-gray-700 hover:text-primary transition-colors relative"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Cart
+                <div className="flex items-center space-x-2">
+                  <span>Cart</span>
+                  {cartCount > 0 && (
+                    <span className="bg-primary text-white text-xs rounded-full px-2 py-1">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
               </Link>
             </nav>
 

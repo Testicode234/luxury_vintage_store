@@ -10,8 +10,24 @@ import Icon from '../../components/AppIcon';
 const AdminPanel = () => {
   const { user, userProfile, loading: authLoading, isAdmin } = useAuth();
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
+  const [categories, setCategories] = useState([
+    { id: 1, name: 'Watches', slug: 'watches' },
+    { id: 2, name: 'Hoodies', slug: 'hoodies' },
+    { id: 3, name: 'Cologne', slug: 'cologne' },
+    { id: 4, name: 'Gadgets', slug: 'gadgets' },
+    { id: 5, name: 'AirPods', slug: 'airpods' },
+    { id: 6, name: 'AirPods Max', slug: 'airpods-max' }
+  ]);
+  const [brands, setBrands] = useState([
+    { id: 1, name: 'Apple', slug: 'apple' },
+    { id: 2, name: 'Samsung', slug: 'samsung' },
+    { id: 3, name: 'Nike', slug: 'nike' },
+    { id: 4, name: 'Champion', slug: 'champion' },
+    { id: 5, name: 'Tom Ford', slug: 'tom-ford' },
+    { id: 6, name: 'Dior', slug: 'dior' },
+    { id: 7, name: 'Rolex', slug: 'rolex' },
+    { id: 8, name: 'Sony', slug: 'sony' }
+  ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,10 +62,19 @@ const AdminPanel = () => {
       ]);
       
       setProducts(productsData);
-      setCategories(categoriesData);
-      setBrands(brandsData);
+      
+      // Merge with default categories if API returns data
+      if (categoriesData && categoriesData.length > 0) {
+        setCategories(categoriesData);
+      }
+      
+      // Merge with default brands if API returns data
+      if (brandsData && brandsData.length > 0) {
+        setBrands(brandsData);
+      }
     } catch (err) {
       setError(err?.message || 'Failed to load data');
+      // Keep default categories and brands on error
     } finally {
       setLoading(false);
     }

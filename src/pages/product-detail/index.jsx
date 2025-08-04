@@ -179,22 +179,24 @@ const ProductDetail = () => {
   }, []);
 
   const handleAddToCart = async () => {
-    if (!product || product.stock === 0) return;
+    if (!product) return;
 
     setIsAddingToCart(true);
 
     try {
-      const productToAdd = {
+      // Add variant info if available
+      const productWithVariant = {
         ...product,
-        selectedSize: selectedSize,
-        selectedColor: selectedColor,
-        variant: `${selectedSize ? `Size: ${selectedSize}` : ''}${selectedSize && selectedColor ? ', ' : ''}${selectedColor ? `Color: ${selectedColor.name}` : ''}`
+        variant: [selectedSize, selectedColor?.name].filter(Boolean).join(', ')
       };
 
-      await cartService.addToCart(productToAdd, quantity);
+      await cartService.addToCart(productWithVariant, quantity);
 
+      // Optional: Show success message
+      console.log('Added to cart:', productWithVariant.name);
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 3000);
+
     } catch (error) {
       console.error('Error adding to cart:', error);
       setError('Failed to add product to cart. Please try again.');
@@ -311,15 +313,15 @@ const ProductDetail = () => {
             <div className="order-2">
               <ProductInfo
                 product={product}
-                onAddToCart={handleAddToCart}
-                onAddToWishlist={handleAddToWishlist}
-                isInWishlist={isInWishlist}
-                quantity={quantity}
-                setQuantity={setQuantity}
                 selectedSize={selectedSize}
-                setSelectedSize={setSelectedSize}
+                onSizeChange={setSelectedSize}
                 selectedColor={selectedColor}
-                setSelectedColor={setSelectedColor}
+                onColorChange={setSelectedColor}
+                quantity={quantity}
+                onQuantityChange={handleQuantityChange}
+                isInWishlist={isInWishlist}
+                onAddToWishlist={handleAddToWishlist}
+                onAddToCart={handleAddToCart}
                 isAddingToCart={isAddingToCart}
               />
             </div>
@@ -347,9 +349,10 @@ const ProductDetail = () => {
       {showStickyCart && (
         <StickyAddToCart
           product={product}
-          quantity={quantity}
           selectedSize={selectedSize}
           selectedColor={selectedColor}
+          quantity={quantity}
+          onQuantityChange={handleQuantityChange}
           onAddToCart={handleAddToCart}
           isAddingToCart={isAddingToCart}
         />
