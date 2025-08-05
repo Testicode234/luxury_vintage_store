@@ -231,32 +231,15 @@ const ProductCatalogBrowse = () => {
       <main className="pt-16 lg:pt-20">
         <div className="w-full">
           <div className="flex">
-            {/* Filter Sidebar - Desktop */}
-            <div className="hidden lg:block w-80 flex-shrink-0">
-              <div className="sticky top-20 p-6">
-                <FilterSidebar
-                  categories={categoriesWithCounts?.filter(cat => cat?.count > 0)}
-                  brands={brandsWithCounts?.filter(brand => brand?.count > 0)}
-                  ratings={ratings}
-                  priceRange={priceRange}
-                  activeFilters={activeFilters}
-                  activeBrands={activeBrands}
-                  activeRating={activeRating}
-                  onFilterToggle={handleFilterToggle}
-                  onBrandToggle={handleBrandToggle}
-                  onRatingSelect={setActiveRating}
-                  onPriceRangeChange={setPriceRange}
-                  onClearAll={handleClearAllFilters}
-                />
-              </div>
-            </div>
-
+           
             
 
             {/* Main Content */}
             <div className="flex-1 min-w-0">
               <div className="px-4 md:px-6 lg:px-8 py-6 space-y-6">
                 {/* Mobile Filter Button & Search Results */}
+
+                <div className='md:text-8xl text-4xl font-bold text-black [text-shadow:_2px_2px_0_white] text-center'>LUXURY VINTAGE</div>
                 <div className="flex items-center justify-between lg:hidden">
                   <Button
                     variant="outline"
