@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
-
-import { Checkbox } from '../../../components/ui/Checkbox';
+import Checkbox  from '../../../components/ui/Checkbox';
 
 const ShippingSection = ({ 
   isOpen, 
