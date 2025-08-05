@@ -1,18 +1,66 @@
-// Frontend Stripe Service - Only handles client-side operations
-export const stripeService = {
-  // All Stripe operations that require secret keys are now handled by the backend
-  // This service only handles client-side operations like redirecting to checkout
 
-  // Redirect to backend-created checkout session
-  async redirectToCheckout(sessionId) {
-    // This would integrate with Stripe's client-side library
-    // For now, this is a placeholder
-    console.log('Redirecting to checkout session:', sessionId);
+// Frontend Stripe Service - Real integration
+export const stripeService = {
+  // Create checkout session with real products
+  async createCheckoutSession(cartItems, customerData) {
+    try {
+      const response = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: cartItems,
+          customerData,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      throw error;
+    }
   },
 
-  // Get public Stripe key (this would come from environment or config)
-  getPublicKey() {
-    // This would return the publishable key for client-side operations
-    return 'pk_test_...'; // Placeholder
+  // Create Stripe products via backend
+  async createStripeProduct(product) {
+    try {
+      const response = await fetch('/api/stripe/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create Stripe product');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating Stripe product:', error);
+      throw error;
+    }
+  },
+
+  // Get payment status
+  async getPaymentStatus(sessionId) {
+    try {
+      const response = await fetch(`/api/stripe/payment-status/${sessionId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to get payment status');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting payment status:', error);
+      throw error;
+    }
   }
 };

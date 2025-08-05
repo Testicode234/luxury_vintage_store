@@ -146,4 +146,84 @@ class StripeService {
   }
 }
 
+async createCheckoutSession(items, customerData) {
+    try {
+      const lineItems = items.map(item => ({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: item.name,
+            description: item.variant || item.description,
+            images: item.image ? [item.image] : [],
+          },
+          unit_amount: Math.round(item.price * 100), // Convert to cents
+        },
+        quantity: item.quantity,
+      }));
+
+      const response = await fetch(`${this.baseURL}/checkout/sessions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.stripeSecretKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          'success_url': `${process.env.CLIENT_URL}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+          'cancel_url': `${process.env.CLIENT_URL}/shopping-cart`,
+          'payment_method_types[0]': 'card',
+          'mode': 'payment',
+          'customer_email': customerData.email,
+          ...lineItems.reduce((acc, item, index) => {
+            Object.keys(item).forEach(key => {
+              if (typeof item[key] === 'object' && item[key] !== null) {
+                Object.keys(item[key]).forEach(subKey => {
+                  if (typeof item[key][subKey] === 'object' && item[key][subKey] !== null) {
+                    Object.keys(item[key][subKey]).forEach(subSubKey => {
+                      acc[`line_items[${index}][${key}][${subKey}][${subSubKey}]`] = item[key][subKey][subSubKey];
+                    });
+                  } else {
+                    acc[`line_items[${index}][${key}][${subKey}]`] = item[key][subKey];
+                  }
+                });
+              } else {
+                acc[`line_items[${index}][${key}]`] = item[key];
+              }
+            });
+            return acc;
+          }, {})
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Stripe checkout session creation failed: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      throw error;
+    }
+  }
+
+  async getPaymentStatus(sessionId) {
+    try {
+      const response = await fetch(`${this.baseURL}/checkout/sessions/${sessionId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.stripeSecretKey}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to get payment status: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting payment status:', error);
+      throw error;
+    }
+  }
+}
+
 module.exports = new StripeService();

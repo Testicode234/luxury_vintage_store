@@ -17,6 +17,15 @@ const stripeRoutes = require('./routes/stripe');
 // Use routes
 app.use('/api/stripe', stripeRoutes);
 
+// Handle checkout success/cancel redirects
+app.get('/checkout/success', (req, res) => {
+  res.redirect(`${process.env.CLIENT_URL}/order-confirmation?session_id=${req.query.session_id}`);
+});
+
+app.get('/checkout/cancel', (req, res) => {
+  res.redirect(`${process.env.CLIENT_URL}/shopping-cart`);
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

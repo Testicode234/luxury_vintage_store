@@ -65,4 +65,33 @@ router.delete('/products/:stripeProductId', async (req, res) => {
   }
 });
 
+// Create checkout session
+router.post('/create-checkout-session', async (req, res) => {
+  try {
+    const { items, customerData } = req.body;
+    
+    if (!items || !items.length) {
+      return res.status(400).json({ error: 'Cart items are required' });
+    }
+
+    const session = await stripeService.createCheckoutSession(items, customerData);
+    res.json({ sessionId: session.id, url: session.url });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get payment status
+router.get('/payment-status/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await stripeService.getPaymentStatus(sessionId);
+    res.json(session);
+  } catch (error) {
+    console.error('Error getting payment status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

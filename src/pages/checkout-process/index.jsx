@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../contexts/AuthContext';
+import { cartService } from '../../services/cartService';
+import { stripeService } from '../../services/stripeService';
 import Header from '../../components/ui/Header';
 import ShippingSection from './components/ShippingSection';
 import BillingSection from './components/BillingSection';
@@ -12,11 +16,14 @@ import Button from '../../components/ui/Button';
 
 const CheckoutProcess = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [currentStep, setCurrentStep] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isGuest, setIsGuest] = useState(true);
+  const [isGuest, setIsGuest] = useState(!user);
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Section states
   const [openSections, setOpenSections] = useState({
@@ -24,51 +31,6 @@ const CheckoutProcess = () => {
     billing: false,
     payment: false
   });
-
-  // Mock cart data
-  const [cartItems] = useState([
-    {
-      id: 1,
-      name: "Apple Watch Series 9",
-      variant: "45mm, Midnight Aluminum",
-      price: 429.00,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=400&h=400&fit=crop"
-    },
-    {
-      id: 2,
-      name: "Premium Leather Watch Band",
-      variant: "Black, 45mm",
-      price: 49.99,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400&h=400&fit=crop"
-    }
-  ]);
-
-  // Mock saved addresses
-  const [savedAddresses] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      street: "123 Main Street",
-      apartment: "Apt 4B",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "US",
-      phone: "(555) 123-4567"
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      street: "456 Oak Avenue",
-      city: "Brooklyn",
-      state: "NY",
-      zipCode: "11201",
-      country: "US",
-      phone: "(555) 123-4567"
-    }
-  ]);
 
   // Delivery options
   const [deliveryOptions] = useState([
@@ -104,7 +66,8 @@ const CheckoutProcess = () => {
     state: '',
     zipCode: '',
     country: 'US',
-    phone: ''
+    phone: '',
+    email: user?.email || ''
   });
 
   const [billingData, setBillingData] = useState({
@@ -118,16 +81,7 @@ const CheckoutProcess = () => {
     country: 'US'
   });
 
-  const [paymentData, setPaymentData] = useState({
-    cardNumber: '',
-    cardName: '',
-    expiryMonth: '',
-    expiryYear: '',
-    cvv: ''
-  });
-
   const [sameAsShipping, setSameAsShipping] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState('card');
 
   // Progress steps
   const steps = [
@@ -137,10 +91,31 @@ const CheckoutProcess = () => {
     { id: 'review', name: 'Review' }
   ];
 
+  // Load cart items from database
+  useEffect(() => {
+    loadCartItems();
+  }, [user]);
+
+  const loadCartItems = async () => {
+    try {
+      setLoading(true);
+      const items = await cartService.getCartItems(user?.id);
+      setCartItems(items);
+      
+      if (items.length === 0) {
+        navigate('/shopping-cart');
+      }
+    } catch (error) {
+      console.error('Error loading cart items:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Calculate totals
-  const subtotal = cartItems?.reduce((sum, item) => sum + (item?.price * item?.quantity), 0);
-  const selectedDeliveryOption = deliveryOptions?.find(option => option?.id === selectedDelivery);
-  const shipping = selectedDeliveryOption ? selectedDeliveryOption?.price : 0;
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const selectedDeliveryOption = deliveryOptions.find(option => option.id === selectedDelivery);
+  const shipping = selectedDeliveryOption ? selectedDeliveryOption.price : 0;
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + shipping + tax - promoDiscount;
 
@@ -148,14 +123,14 @@ const CheckoutProcess = () => {
     // Auto-populate billing if same as shipping
     if (sameAsShipping) {
       setBillingData({
-        firstName: shippingData?.firstName,
-        lastName: shippingData?.lastName,
-        street: shippingData?.street,
-        apartment: shippingData?.apartment,
-        city: shippingData?.city,
-        state: shippingData?.state,
-        zipCode: shippingData?.zipCode,
-        country: shippingData?.country
+        firstName: shippingData.firstName,
+        lastName: shippingData.lastName,
+        street: shippingData.street,
+        apartment: shippingData.apartment,
+        city: shippingData.city,
+        state: shippingData.state,
+        zipCode: shippingData.zipCode,
+        country: shippingData.country
       });
     }
   }, [sameAsShipping, shippingData]);
@@ -163,7 +138,7 @@ const CheckoutProcess = () => {
   const handleSectionToggle = (section) => {
     setOpenSections(prev => ({
       ...prev,
-      [section]: !prev?.[section]
+      [section]: !prev[section]
     }));
   };
 
@@ -181,37 +156,16 @@ const CheckoutProcess = () => {
     }));
   };
 
-  const handlePaymentChange = (field, value) => {
-    setPaymentData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleAddressSelect = (address) => {
-    setShippingData({
-      firstName: address?.name?.split(' ')?.[0],
-      lastName: address?.name?.split(' ')?.slice(1)?.join(' '),
-      street: address?.street,
-      apartment: address?.apartment || '',
-      city: address?.city,
-      state: address?.state,
-      zipCode: address?.zipCode,
-      country: address?.country,
-      phone: address?.phone
-    });
-  };
-
   const handleApplyPromo = () => {
-    // Mock promo codes
+    // Mock promo codes - in real app, verify with backend
     const promoCodes = {
       'SAVE10': 10,
       'WELCOME20': 20,
       'FIRST15': 15
     };
 
-    if (promoCodes?.[promoCode?.toUpperCase()]) {
-      setPromoDiscount(promoCodes?.[promoCode?.toUpperCase()]);
+    if (promoCodes[promoCode.toUpperCase()]) {
+      setPromoDiscount(promoCodes[promoCode.toUpperCase()]);
     } else {
       setPromoDiscount(0);
       alert('Invalid promo code');
@@ -221,17 +175,28 @@ const CheckoutProcess = () => {
   const handleCompleteOrder = async () => {
     setIsProcessing(true);
 
-    // Simulate payment processing
     try {
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Prepare customer data
+      const customerData = {
+        email: shippingData.email,
+        name: `${shippingData.firstName} ${shippingData.lastName}`,
+        phone: shippingData.phone,
+        shipping: shippingData,
+        billing: sameAsShipping ? shippingData : billingData
+      };
 
-      // Store order data for confirmation page
+      // Create Stripe checkout session
+      const { sessionId, url } = await stripeService.createCheckoutSession(
+        cartItems,
+        customerData
+      );
+
+      // Store order data for later retrieval
       const orderData = {
-        orderNumber: `WH${Date.now()}`,
+        sessionId,
         items: cartItems,
         shipping: shippingData,
         billing: sameAsShipping ? shippingData : billingData,
-        payment: { method: paymentMethod },
         totals: {
           subtotal,
           shipping,
@@ -239,20 +204,35 @@ const CheckoutProcess = () => {
           discount: promoDiscount,
           total
         },
-        estimatedDelivery: new Date(Date.now() + (selectedDeliveryOption.id === 'overnight' ? 1 : selectedDeliveryOption.id === 'express' ? 3 : 7) * 24 * 60 * 60 * 1000)
+        timestamp: new Date().toISOString()
       };
 
-      localStorage.setItem('lastOrder', JSON.stringify(orderData));
-      localStorage.setItem('cartCount', '0'); // Clear cart
+      localStorage.setItem('pendingOrder', JSON.stringify(orderData));
 
-      navigate('/order-confirmation');
+      // Redirect to Stripe checkout
+      window.location.href = url;
+
     } catch (error) {
-      console.error('Payment failed:', error);
-      alert('Payment failed. Please try again.');
+      console.error('Checkout failed:', error);
+      alert('Checkout failed. Please try again.');
     } finally {
       setIsProcessing(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="pt-20 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading checkout...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -283,12 +263,10 @@ const CheckoutProcess = () => {
 
               {/* Shipping Section */}
               <ShippingSection
-                isOpen={openSections?.shipping}
+                isOpen={openSections.shipping}
                 onToggle={() => handleSectionToggle('shipping')}
                 shippingData={shippingData}
                 onShippingChange={handleShippingChange}
-                savedAddresses={savedAddresses}
-                onAddressSelect={handleAddressSelect}
                 deliveryOptions={deliveryOptions}
                 selectedDelivery={selectedDelivery}
                 onDeliveryChange={setSelectedDelivery}
@@ -296,7 +274,7 @@ const CheckoutProcess = () => {
 
               {/* Billing Section */}
               <BillingSection
-                isOpen={openSections?.billing}
+                isOpen={openSections.billing}
                 onToggle={() => handleSectionToggle('billing')}
                 billingData={billingData}
                 onBillingChange={handleBillingChange}
@@ -305,15 +283,15 @@ const CheckoutProcess = () => {
                 onSameAsShippingChange={setSameAsShipping}
               />
 
-              {/* Payment Section */}
-              <PaymentSection
-                isOpen={openSections?.payment}
-                onToggle={() => handleSectionToggle('payment')}
-                paymentData={paymentData}
-                onPaymentChange={handlePaymentChange}
-                paymentMethod={paymentMethod}
-                onPaymentMethodChange={setPaymentMethod}
-              />
+              {/* Payment Section - Note: Actual payment handled by Stripe */}
+              <div className="bg-card border border-border rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">Payment</h3>
+                </div>
+                <p className="text-muted-foreground">
+                  You will be redirected to Stripe to complete your payment securely.
+                </p>
+              </div>
             </div>
 
             {/* Order Summary */}
@@ -345,7 +323,7 @@ const CheckoutProcess = () => {
               loading={isProcessing}
               className="py-4"
             >
-              {isProcessing ? 'Processing...' : `Complete Order - $${total?.toFixed(2)}`}
+              {isProcessing ? 'Processing...' : `Complete Order - $${total.toFixed(2)}`}
             </Button>
           </div>
         </div>
