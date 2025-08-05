@@ -10,24 +10,8 @@ import Icon from '../../components/AppIcon';
 const AdminPanel = () => {
   const { user, userProfile, loading: authLoading, isAdmin } = useAuth();
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Watches', slug: 'watches' },
-    { id: 2, name: 'Hoodies', slug: 'hoodies' },
-    { id: 3, name: 'Cologne', slug: 'cologne' },
-    { id: 4, name: 'Gadgets', slug: 'gadgets' },
-    { id: 5, name: 'AirPods', slug: 'airpods' },
-    { id: 6, name: 'AirPods Max', slug: 'airpods-max' }
-  ]);
-  const [brands, setBrands] = useState([
-    { id: 1, name: 'Apple', slug: 'apple' },
-    { id: 2, name: 'Samsung', slug: 'samsung' },
-    { id: 3, name: 'Nike', slug: 'nike' },
-    { id: 4, name: 'Champion', slug: 'champion' },
-    { id: 5, name: 'Tom Ford', slug: 'tom-ford' },
-    { id: 6, name: 'Dior', slug: 'dior' },
-    { id: 7, name: 'Rolex', slug: 'rolex' },
-    { id: 8, name: 'Sony', slug: 'sony' }
-  ]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,21 +37,21 @@ const AdminPanel = () => {
   const loadData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const [productsData, categoriesData, brandsData] = await Promise.all([
         productService?.getProducts(),
         productService?.getCategories(),
         productService?.getBrands()
       ]);
-      
+
       setProducts(productsData);
-      
+
       // Merge with default categories if API returns data
       if (categoriesData && categoriesData.length > 0) {
         setCategories(categoriesData);
       }
-      
+
       // Merge with default brands if API returns data
       if (brandsData && brandsData.length > 0) {
         setBrands(brandsData);
@@ -242,7 +226,7 @@ const AdminPanel = () => {
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Products ({products?.length})</h3>
-              
+
               {products?.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No products found. Create your first product to get started.</p>
               ) : (

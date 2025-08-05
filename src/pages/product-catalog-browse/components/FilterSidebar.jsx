@@ -1,215 +1,252 @@
+
 import React, { useState, useEffect } from 'react';
 import Button from '../../../components/ui/Button';
+import Checkbox from '../../../components/ui/Checkbox';
+import Input from '../../../components/ui/Input';
 import Icon from '../../../components/AppIcon';
-import { Checkbox } from '../../../components/ui/Checkbox';
-import { Input } from '../../../components/ui/Input'; // Assuming you have an Input component
 
 const FilterSidebar = ({
-  isOpen,
-  onClose,
-  isMobile = false,
   categories = [],
-  activeFilters = [],
-  onFilterToggle,
-  priceRange = { min: 0, max: 10000 },
-  onPriceRangeChange,
   brands = [],
-  activeBrands = [],
-  onBrandToggle,
-  ratings = [],
-  activeRating,
-  onRatingChange,
+  filters = {},
+  onFiltersChange = () => {},
+  onClearFilters = () => {},
+  className = ""
 }) => {
-  const [localPrice, setLocalPrice] = useState(priceRange);
+  const [expandedSections, setExpandedSections] = useState({
+    category: true,
+    brand: true,
+    price: true,
+    rating: true,
+    features: true
+  });
+
+  const [localFilters, setLocalFilters] = useState(filters);
+  const [priceRange, setPriceRange] = useState({
+    min: filters.minPrice || '',
+    max: filters.maxPrice || ''
+  });
 
   useEffect(() => {
-    setLocalPrice(priceRange);
-  }, [priceRange]);
+    setLocalFilters(filters);
+    setPriceRange({
+      min: filters.minPrice || '',
+      max: filters.maxPrice || ''
+    });
+  }, [filters]);
 
-  const handlePriceChange = (field, value) => {
-    const parsed = parseFloat(value) || 0;
-    const updated = { ...localPrice, [field]: parsed };
-    setLocalPrice(updated);
-    onPriceRangeChange(updated);
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
-  const handleClearAll = () => {
-    onFilterToggle(null, true); // Clear all categories
-    onPriceRangeChange({ min: 0, max: 10000 });
-    onBrandToggle(null, true); // Clear all brands
-    onRatingChange(null);
+  const handleCategoryChange = (categoryId, checked) => {
+    const updatedCategories = checked
+      ? [...(localFilters.categories || []), categoryId]
+      : (localFilters.categories || []).filter(id => id !== categoryId);
+    
+    const newFilters = { ...localFilters, categories: updatedCategories };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
   };
 
-  const formatPrice = (price) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(price);
+  const handleBrandChange = (brandId, checked) => {
+    const updatedBrands = checked
+      ? [...(localFilters.brands || []), brandId]
+      : (localFilters.brands || []).filter(id => id !== brandId);
+    
+    const newFilters = { ...localFilters, brands: updatedBrands };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
+  const handlePriceChange = () => {
+    const newFilters = {
+      ...localFilters,
+      minPrice: priceRange.min ? parseFloat(priceRange.min) : undefined,
+      maxPrice: priceRange.max ? parseFloat(priceRange.max) : undefined
+    };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
+  const handleRatingChange = (rating, checked) => {
+    const newFilters = { ...localFilters, minRating: checked ? rating : undefined };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
+  const handleFeatureChange = (feature, checked) => {
+    const updatedFeatures = checked
+      ? [...(localFilters.features || []), feature]
+      : (localFilters.features || []).filter(f => f !== feature);
+    
+    const newFilters = { ...localFilters, features: updatedFeatures };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (localFilters.categories?.length) count += localFilters.categories.length;
+    if (localFilters.brands?.length) count += localFilters.brands.length;
+    if (localFilters.minPrice || localFilters.maxPrice) count += 1;
+    if (localFilters.minRating) count += 1;
+    if (localFilters.features?.length) count += localFilters.features.length;
+    return count;
+  };
+
+  const renderSection = (title, sectionKey, content) => (
+    <div className="border-b border-border pb-4">
+      <button
+        onClick={() => toggleSection(sectionKey)}
+        className="flex items-center justify-between w-full text-left font-medium text-foreground hover:text-accent transition-colors"
+      >
+        <span>{title}</span>
+        <Icon 
+          name={expandedSections[sectionKey] ? "ChevronUp" : "ChevronDown"} 
+          size={16} 
+        />
+      </button>
+      {expandedSections[sectionKey] && (
+        <div className="mt-3 space-y-2">
+          {content}
+        </div>
+      )}
+    </div>
+  );
 
   const sidebarContent = (
-    <div className="p-6 space-y-6">
+    <div className={`bg-card border border-border rounded-lg p-4 space-y-6 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Filters</h2>
-        {isMobile && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <Icon name="X" size={20} />
+        <h3 className="text-lg font-semibold text-foreground">Filters</h3>
+        {getActiveFiltersCount() > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClearFilters}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Clear All ({getActiveFiltersCount()})
           </Button>
         )}
       </div>
 
-      {/* Clear All */}
-      {(activeFilters.length > 0 || activeBrands.length > 0 || activeRating) && (
-        <Button
-          variant="outline"
-          onClick={handleClearAll}
-          className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-        >
-          <Icon name="RotateCcw" size={16} className="mr-2" />
-          Clear All Filters
-        </Button>
-      )}
-
       {/* Categories */}
-      {categories.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="font-medium text-foreground">Categories</h3>
-          <div className="space-y-3">
-            {categories.map((category) => (
-              <div key={category.id} className="flex items-center justify-between">
-                <Checkbox
-                  label={category.name}
-                  checked={activeFilters.includes(category.id)}
-                  onChange={() => onFilterToggle(category.id)}
-                  className="flex-1"
-                />
-                <span className="text-sm text-muted-foreground ml-2">
-                  ({category.count})
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Price Range */}
-      <div className="space-y-4">
-        <h3 className="font-medium text-foreground">Price Range</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm text-muted-foreground mb-1">Min</label>
-            <Input
-              type="number"
-              value={localPrice.min}
-              onChange={(e) => handlePriceChange('min', e.target.value)}
-              placeholder="0"
+      {renderSection("Categories", "category", (
+        <div className="space-y-2">
+          {categories.map((category) => (
+            <Checkbox
+              key={category.id}
+              id={`category-${category.id}`}
+              label={category.name}
+              checked={(localFilters.categories || []).includes(category.id)}
+              onChange={(checked) => handleCategoryChange(category.id, checked)}
             />
-          </div>
-          <div>
-            <label className="block text-sm text-muted-foreground mb-1">Max</label>
-            <Input
-              type="number"
-              value={localPrice.max}
-              onChange={(e) => handlePriceChange('max', e.target.value)}
-              placeholder="10000"
-            />
-          </div>
+          ))}
         </div>
-        <div className="text-sm text-muted-foreground">
-          {formatPrice(localPrice.min)} - {formatPrice(localPrice.max)}
-        </div>
-      </div>
+      ))}
 
       {/* Brands */}
-      {brands.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="font-medium text-foreground">Brands</h3>
-          <div className="space-y-3 max-h-48 overflow-y-auto">
-            {brands.map((brand) => (
-              <div key={brand.id} className="flex items-center justify-between">
-                <Checkbox
-                  label={brand.name}
-                  checked={activeBrands.includes(brand.id)}
-                  onChange={() => onBrandToggle(brand.id)}
-                  className="flex-1"
-                />
-                <span className="text-sm text-muted-foreground ml-2">
-                  ({brand.count})
-                </span>
-              </div>
-            ))}
-          </div>
+      {renderSection("Brands", "brand", (
+        <div className="space-y-2">
+          {brands.map((brand) => (
+            <Checkbox
+              key={brand.id}
+              id={`brand-${brand.id}`}
+              label={brand.name}
+              checked={(localFilters.brands || []).includes(brand.id)}
+              onChange={(checked) => handleBrandChange(brand.id, checked)}
+            />
+          ))}
         </div>
-      )}
+      ))}
 
-      {/* Ratings */}
-      {ratings.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="font-medium text-foreground">Customer Rating</h3>
-          <div className="space-y-2">
-            {ratings.map((rating) => (
-              <div key={rating.value} className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  id={`rating-${rating.value}`}
-                  name="rating"
-                  checked={activeRating === rating.value}
-                  onChange={() => onRatingChange(rating.value)}
-                  className="w-4 h-4 text-accent bg-input border-border focus:ring-accent focus:ring-2"
-                />
-                <label
-                  htmlFor={`rating-${rating.value}`}
-                  className="flex-1 text-sm text-foreground cursor-pointer flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Icon
-                        key={i}
-                        name="Star"
-                        size={14}
-                        className={`${
-                          i < rating.value ? 'text-warning fill-current' : 'text-muted-foreground'
-                        }`}
-                      />
-                    ))}
-                    <span>& Up</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">({rating.count})</span>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  if (isMobile) {
-    return (
-      <>
-        {isOpen && (
-          <div className="fixed inset-0 z-50">
-            <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-            <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-xl z-50 overflow-y-auto">
-              {sidebarContent}
+      {/* Price Range */}
+      {renderSection("Price Range", "price", (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Min</label>
+              <Input
+                type="number"
+                placeholder="$0"
+                value={priceRange.min}
+                onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                onBlur={handlePriceChange}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Max</label>
+              <Input
+                type="number"
+                placeholder="$999+"
+                value={priceRange.max}
+                onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                onBlur={handlePriceChange}
+              />
             </div>
           </div>
-        )}
-      </>
-    );
-  }
+        </div>
+      ))}
 
-  // Desktop view
-  return (
-    <div
-      className={`fixed lg:sticky top-16 lg:top-20 left-0 h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] w-80 bg-card border-r border-border z-50 lg:z-0 transform transition-transform duration-300 ease-in-out ${
-        isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } overflow-y-auto scrollbar-thin scrollbar-track-muted scrollbar-thumb-muted-foreground`}
-    >
-      {sidebarContent}
+      {/* Rating */}
+      {renderSection("Customer Rating", "rating", (
+        <div className="space-y-2">
+          {[4, 3, 2, 1].map((rating) => (
+            <Checkbox
+              key={rating}
+              id={`rating-${rating}`}
+              label={
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Icon
+                      key={i}
+                      name="Star"
+                      size={12}
+                      className={i < rating ? "text-warning fill-current" : "text-muted-foreground"}
+                    />
+                  ))}
+                  <span className="text-sm text-muted-foreground ml-1">& Up</span>
+                </div>
+              }
+              checked={localFilters.minRating === rating}
+              onChange={(checked) => handleRatingChange(rating, checked)}
+            />
+          ))}
+        </div>
+      ))}
+
+      {/* Features */}
+      {renderSection("Features", "features", (
+        <div className="space-y-2">
+          {[
+            'Water Resistant',
+            'GPS',
+            'Heart Rate Monitor',
+            'Sleep Tracking',
+            'Wireless Charging',
+            'Always-On Display',
+            'Cellular',
+            'ECG'
+          ].map((feature) => (
+            <Checkbox
+              key={feature}
+              id={`feature-${feature.replace(/\s+/g, '-').toLowerCase()}`}
+              label={feature}
+              checked={(localFilters.features || []).includes(feature)}
+              onChange={(checked) => handleFeatureChange(feature, checked)}
+            />
+          ))}
+        </div>
+      ))}
     </div>
   );
+
+  return sidebarContent;
 };
 
 export default FilterSidebar;

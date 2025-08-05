@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import ProductImageGallery from './components/ProductImageGallery';
 import ProductInfo from './components/ProductInfo';
@@ -15,7 +15,8 @@ import { cartService } from '../../services/cartService';
 const ProductDetail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const productIdParam = searchParams?.get('id');
+  const { id: urlParamId } = useParams();
+  const productIdParam = urlParamId || searchParams?.get('id');
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -203,6 +204,10 @@ const ProductDetail = () => {
     } finally {
       setIsAddingToCart(false);
     }
+  };
+
+  const handleQuantityChange = (newQuantity) => {
+    setQuantity(Math.max(1, newQuantity));
   };
 
   const handleAddToWishlist = () => {

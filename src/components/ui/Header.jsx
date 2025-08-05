@@ -38,14 +38,14 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-black text-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 lg:h-20">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
               <Icon name="Watch" size={32} className="text-primary" />
-              <span className="text-xl font-bold text-gray-900">WatchHub</span>
+              <span className="text-xl font-bold text-white">Luxury Vintage</span>
             </Link>
           </div>
 
@@ -61,7 +61,7 @@ const Header = () => {
                   className="pl-10 pr-4"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Icon name="Search" size={16} className="text-gray-400" />
+                  <Icon name="Search" size={16} className="text-white" />
                 </div>
               </div>
             </form>
@@ -72,13 +72,13 @@ const Header = () => {
             <nav className="flex items-center space-x-6">
               <Link
                 to="/product-catalog-browse"
-                className="text-gray-700 hover:text-primary transition-colors"
+                className="text-white hover:text-primary transition-colors"
               >
                 Products
               </Link>
               <Link
                 to="/shopping-cart"
-                className="text-gray-700 hover:text-primary transition-colors flex items-center space-x-1 relative"
+                className="text-white hover:text-primary transition-colors flex items-center space-x-1 relative"
               >
                 <Icon name="ShoppingCart" size={18} />
                 <span>Cart</span>
@@ -93,7 +93,7 @@ const Header = () => {
             {/* User Menu */}
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-white">
                   Welcome, {userProfile?.full_name || user?.email}
                 </span>
                 {isAdmin() && (

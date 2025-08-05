@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { stripeService } from './stripeService';
 
 export const productService = {
   // Get all products with brands and categories
@@ -100,6 +101,22 @@ export const productService = {
 
     if (error) {
       throw new Error(error.message);
+    }
+
+    // Sync with Stripe
+    try {
+      const stripeResult = await stripeService.createStripeProduct(data);
+      
+      // Update product with Stripe IDs
+      await supabase?.from('products')?.update({
+        stripe_product_id: stripeResult.product.id,
+        stripe_price_id: stripeResult.price.id
+      })?.eq('id', data.id);
+      
+      console.log('Product synchronized with Stripe:', stripeResult.product.id);
+    } catch (stripeError) {
+      console.error('Failed to sync with Stripe:', stripeError);
+      // Don't throw error - product was created successfully in our DB
     }
 
     return data;
