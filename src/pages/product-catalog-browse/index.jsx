@@ -251,24 +251,7 @@ const ProductCatalogBrowse = () => {
               </div>
             </div>
 
-            {/* Mobile Filter Sidebar */}
-            <FilterSidebar
-              categories={categoriesWithCounts?.filter(cat => cat?.count > 0)}
-              brands={brandsWithCounts?.filter(brand => brand?.count > 0)}
-              ratings={ratings}
-              priceRange={priceRange}
-              activeFilters={activeFilters}
-              activeBrands={activeBrands}
-              activeRating={activeRating}
-              onFilterToggle={handleFilterToggle}
-              onBrandToggle={handleBrandToggle}
-              onRatingSelect={setActiveRating}
-              onPriceRangeChange={setPriceRange}
-              onClearAll={handleClearAllFilters}
-              isOpen={isFilterSidebarOpen}
-              onClose={() => setIsFilterSidebarOpen(false)}
-              isMobile
-            />
+            
 
             {/* Main Content */}
             <div className="flex-1 min-w-0">
