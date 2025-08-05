@@ -1,62 +1,26 @@
 
-// Stripe Product Sync Service
-class StripeService {
+// Frontend Stripe API Client - Calls backend endpoints
+class StripeAPIClient {
   constructor() {
-    this.stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    this.baseURL = 'https://api.stripe.com/v1';
+    this.baseURL = 'http://localhost:5000/api/stripe';
   }
 
   async createStripeProduct(product) {
     try {
-      // Create product in Stripe
-      const productResponse = await fetch(`${this.baseURL}/products`, {
+      const response = await fetch(`${this.baseURL}/products`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.stripeSecretKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json'
         },
-        body: new URLSearchParams({
-          name: product.name,
-          description: product.description || '',
-          images: product.images ? [product.images[0]] : [],
-          metadata: JSON.stringify({
-            product_id: product.id,
-            category: product.category,
-            brand: product.brand
-          })
-        })
+        body: JSON.stringify(product)
       });
 
-      if (!productResponse.ok) {
-        throw new Error(`Stripe product creation failed: ${productResponse.statusText}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create Stripe product');
       }
 
-      const stripeProduct = await productResponse.json();
-
-      // Create price for the product
-      const priceResponse = await fetch(`${this.baseURL}/prices`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.stripeSecretKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-          product: stripeProduct.id,
-          unit_amount: Math.round(product.price * 100), // Convert to cents
-          currency: 'usd'
-        })
-      });
-
-      if (!priceResponse.ok) {
-        throw new Error(`Stripe price creation failed: ${priceResponse.statusText}`);
-      }
-
-      const stripePrice = await priceResponse.json();
-
-      return {
-        product: stripeProduct,
-        price: stripePrice
-      };
+      return await response.json();
     } catch (error) {
       console.error('Error creating Stripe product:', error);
       throw error;
@@ -66,25 +30,16 @@ class StripeService {
   async updateStripeProduct(stripeProductId, product) {
     try {
       const response = await fetch(`${this.baseURL}/products/${stripeProductId}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${this.stripeSecretKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json'
         },
-        body: new URLSearchParams({
-          name: product.name,
-          description: product.description || '',
-          images: product.images ? [product.images[0]] : [],
-          metadata: JSON.stringify({
-            product_id: product.id,
-            category: product.category,
-            brand: product.brand
-          })
-        })
+        body: JSON.stringify(product)
       });
 
       if (!response.ok) {
-        throw new Error(`Stripe product update failed: ${response.statusText}`);
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update Stripe product');
       }
 
       return await response.json();
@@ -94,24 +49,19 @@ class StripeService {
     }
   }
 
-  async updateStripePrice(stripePriceId, newPrice) {
+  async updateStripePrice(stripePriceId, price) {
     try {
-      // Stripe prices are immutable, so we need to create a new one and archive the old
-      const response = await fetch(`${this.baseURL}/prices`, {
-        method: 'POST',
+      const response = await fetch(`${this.baseURL}/prices/${stripePriceId}`, {
+        method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${this.stripeSecretKey}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json'
         },
-        body: new URLSearchParams({
-          product: stripePriceId.split('_')[0], // Extract product ID
-          unit_amount: Math.round(newPrice * 100),
-          currency: 'usd'
-        })
+        body: JSON.stringify({ price })
       });
 
       if (!response.ok) {
-        throw new Error(`Stripe price update failed: ${response.statusText}`);
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update Stripe price');
       }
 
       return await response.json();
@@ -124,14 +74,12 @@ class StripeService {
   async deleteStripeProduct(stripeProductId) {
     try {
       const response = await fetch(`${this.baseURL}/products/${stripeProductId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${this.stripeSecretKey}`
-        }
+        method: 'DELETE'
       });
 
       if (!response.ok) {
-        throw new Error(`Stripe product deletion failed: ${response.statusText}`);
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete Stripe product');
       }
 
       return await response.json();
@@ -142,4 +90,4 @@ class StripeService {
   }
 }
 
-export const stripeService = new StripeService();
+export const stripeService = new StripeAPIClient();

@@ -16,3 +16,14 @@ exposeLocalhost = true
 localPort = 5173
 externalPort = 3000
 exposeLocalhost = true
+
+[workflows]
+
+[[workflows.workflow]]
+name = "Start Backend"
+author = 45982353
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && npm install && npm start"

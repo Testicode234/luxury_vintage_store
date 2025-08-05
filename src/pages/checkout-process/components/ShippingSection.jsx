@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
-import Checkbox  from '../../../components/ui/Checkbox';
+import Checkbox from '../../../components/ui/Checkbox';
 
 const ShippingSection = ({ 
   isOpen, 
@@ -60,7 +60,7 @@ const ShippingSection = ({
                 onChange={(e) => setUseExistingAddress(e?.target?.checked)}
                 className="mb-4"
               />
-              
+
               {useExistingAddress && (
                 <div className="space-y-3">
                   {savedAddresses?.map((address) => (
