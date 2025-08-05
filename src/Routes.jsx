@@ -20,7 +20,8 @@ const Routes = () => {
         {/* Define your route here */}
         <Route path="/" element={<ProductCatalogBrowse />} />
         <Route path="/shopping-cart" element={<ShoppingCart />} />
-        <Route path="/product-detail/:id?" element={<ProductDetail />} />
+        <Route path="/product-detail/:id" element={<ProductDetail />} />
+        <Route path="/product-detail" element={<ProductDetail />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
         <Route path="/checkout-process" element={<CheckoutProcess />} />
         <Route path="/product-catalog-browse" element={<ProductCatalogBrowse />} />

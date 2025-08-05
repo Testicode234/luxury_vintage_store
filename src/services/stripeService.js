@@ -1,93 +1,18 @@
+// Frontend Stripe Service - Only handles client-side operations
+export const stripeService = {
+  // All Stripe operations that require secret keys are now handled by the backend
+  // This service only handles client-side operations like redirecting to checkout
 
-// Frontend Stripe API Client - Calls backend endpoints
-class StripeAPIClient {
-  constructor() {
-    this.baseURL = 'http://localhost:5000/api/stripe';
+  // Redirect to backend-created checkout session
+  async redirectToCheckout(sessionId) {
+    // This would integrate with Stripe's client-side library
+    // For now, this is a placeholder
+    console.log('Redirecting to checkout session:', sessionId);
+  },
+
+  // Get public Stripe key (this would come from environment or config)
+  getPublicKey() {
+    // This would return the publishable key for client-side operations
+    return 'pk_test_...'; // Placeholder
   }
-
-  async createStripeProduct(product) {
-    try {
-      const response = await fetch(`${this.baseURL}/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(product)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create Stripe product');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating Stripe product:', error);
-      throw error;
-    }
-  }
-
-  async updateStripeProduct(stripeProductId, product) {
-    try {
-      const response = await fetch(`${this.baseURL}/products/${stripeProductId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(product)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update Stripe product');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating Stripe product:', error);
-      throw error;
-    }
-  }
-
-  async updateStripePrice(stripePriceId, price) {
-    try {
-      const response = await fetch(`${this.baseURL}/prices/${stripePriceId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ price })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update Stripe price');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error updating Stripe price:', error);
-      throw error;
-    }
-  }
-
-  async deleteStripeProduct(stripeProductId) {
-    try {
-      const response = await fetch(`${this.baseURL}/products/${stripeProductId}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete Stripe product');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error deleting Stripe product:', error);
-      throw error;
-    }
-  }
-}
-
-export const stripeService = new StripeAPIClient();
+};

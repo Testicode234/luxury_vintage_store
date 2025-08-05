@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Button from '../../../components/ui/Button';
 import Checkbox from '../../../components/ui/Checkbox';
@@ -46,7 +45,7 @@ const FilterSidebar = ({
     const updatedCategories = checked
       ? [...(localFilters.categories || []), categoryId]
       : (localFilters.categories || []).filter(id => id !== categoryId);
-    
+
     const newFilters = { ...localFilters, categories: updatedCategories };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
@@ -56,7 +55,7 @@ const FilterSidebar = ({
     const updatedBrands = checked
       ? [...(localFilters.brands || []), brandId]
       : (localFilters.brands || []).filter(id => id !== brandId);
-    
+
     const newFilters = { ...localFilters, brands: updatedBrands };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
@@ -82,7 +81,7 @@ const FilterSidebar = ({
     const updatedFeatures = checked
       ? [...(localFilters.features || []), feature]
       : (localFilters.features || []).filter(f => f !== feature);
-    
+
     const newFilters = { ...localFilters, features: updatedFeatures };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
@@ -105,9 +104,9 @@ const FilterSidebar = ({
         className="flex items-center justify-between w-full text-left font-medium text-foreground hover:text-accent transition-colors"
       >
         <span>{title}</span>
-        <Icon 
-          name={expandedSections[sectionKey] ? "ChevronUp" : "ChevronDown"} 
-          size={16} 
+        <Icon
+          name={expandedSections[sectionKey] ? "ChevronUp" : "ChevronDown"}
+          size={16}
         />
       </button>
       {expandedSections[sectionKey] && (

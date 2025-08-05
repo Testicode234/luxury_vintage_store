@@ -10,7 +10,7 @@ const ProductCard = ({ product, onWishlistToggle }) => {
   const [imageLoading, setImageLoading] = useState(true);
 
   const handleProductClick = () => {
-    navigate(`/product-detail?id=${product?.id}`);
+    navigate(`/product-detail/${product?.id}`);
   };
 
   const handleWishlistClick = (e) => {
