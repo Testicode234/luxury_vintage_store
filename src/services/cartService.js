@@ -53,17 +53,28 @@ class CartService {
         if (error) throw error;
         return data;
       } else {
-        // Add to localStorage cart
+        // Add to localStorage cart - need to get product data first
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
         const existingItem = cart.find(item => item.productId === productId);
         
         if (existingItem) {
           existingItem.quantity += quantity;
         } else {
-          cart.push({ productId, quantity });
+          // For guest users, we need to store minimal product info
+          // This will be expanded when we fetch product details
+          cart.push({ 
+            id: Date.now(), // temporary ID for cart item
+            productId, 
+            quantity,
+            // These will be populated when product details are fetched
+            name: 'Loading...',
+            price: 0,
+            image: '/assets/images/no_image.png'
+          });
         }
         
         localStorage.setItem('cart', JSON.stringify(cart));
+        this.notifySubscribers();
         return cart;
       }
     } catch (error) {
@@ -150,6 +161,56 @@ class CartService {
       brand: item.products.brand?.name,
       category: item.products.category?.name
     }));
+  }
+
+  // Get cart items (alias for getCartItems for compatibility)
+  getCart() {
+    return JSON.parse(localStorage.getItem('cart') || '[]');
+  }
+
+  // Get total item count in cart
+  getItemCount() {
+    const cart = this.getCart();
+    return cart.reduce((total, item) => total + (item.quantity || 1), 0);
+  }
+
+  // Get subtotal of all items in cart
+  getSubtotal() {
+    const cart = this.getCart();
+    return cart.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 1)), 0);
+  }
+
+  // Update quantity of a specific item
+  updateQuantity(itemId, newQuantity) {
+    const cart = this.getCart();
+    const updatedCart = cart.map(item => 
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
+    );
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    this.notifySubscribers();
+  }
+
+  // Remove specific item from cart
+  removeItem(itemId) {
+    const cart = this.getCart();
+    const updatedCart = cart.filter(item => item.id !== itemId);
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    this.notifySubscribers();
+  }
+
+  // Subscription management for cart updates
+  subscribers = [];
+
+  subscribe(callback) {
+    this.subscribers.push(callback);
+    return () => {
+      this.subscribers = this.subscribers.filter(sub => sub !== callback);
+    };
+  }
+
+  notifySubscribers() {
+    const cart = this.getCart();
+    this.subscribers.forEach(callback => callback(cart));
   }
 }
 
