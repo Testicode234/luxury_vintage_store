@@ -1,4 +1,3 @@
-
 import { supabase } from '../lib/supabase';
 
 class CartService {
@@ -56,7 +55,7 @@ class CartService {
         // Add to localStorage cart - need to get product data first
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
         const existingItem = cart.find(item => item.productId === productId);
-        
+
         if (existingItem) {
           existingItem.quantity += quantity;
         } else {
@@ -72,7 +71,7 @@ class CartService {
             image: '/assets/images/no_image.png'
           });
         }
-        
+
         localStorage.setItem('cart', JSON.stringify(cart));
         this.notifySubscribers();
         return cart;

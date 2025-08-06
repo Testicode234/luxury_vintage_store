@@ -2,23 +2,11 @@ import { supabase } from '../lib/supabase';
 import { stripeService } from './stripeService';
 
 export const productService = {
-  // Get all products with brands and categories
+  // Get all products
   async getProducts(filters = {}) {
-    let query = supabase?.from('products')?.select(`
-        *,
-        brand:brands(id, name, slug),
-        category:categories(id, name, slug, icon)
-      `)?.eq('status', 'active');
+    let query = supabase?.from('products')?.select('*')?.eq('status', 'active');
 
     // Apply filters
-    if (filters?.category) {
-      query = query?.eq('category.slug', filters?.category);
-    }
-    
-    if (filters?.brand) {
-      query = query?.eq('brand.slug', filters?.brand);
-    }
-    
     if (filters?.minPrice) {
       query = query?.gte('price', filters?.minPrice);
     }
@@ -32,7 +20,7 @@ export const productService = {
     }
     
     if (filters?.search) {
-      query = query?.or(`name.ilike.%${filters?.search}%,brand.name.ilike.%${filters?.search}%`);
+      query = query?.ilike('name', `%${filters?.search}%`);
     }
 
     // Apply sorting
@@ -70,11 +58,7 @@ export const productService = {
 
   // Get single product by ID
   async getProduct(id) {
-    const { data, error } = await supabase?.from('products')?.select(`
-        *,
-        brand:brands(id, name, slug),
-        category:categories(id, name, slug, icon)
-      `)?.eq('id', id)?.single();
+    const { data, error } = await supabase?.from('products')?.select('*')?.eq('id', id)?.single();
 
     if (error) {
       throw new Error(error.message);
@@ -93,11 +77,7 @@ export const productService = {
       updated_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase?.from('products')?.insert([productWithId])?.select(`
-        *,
-        brand:brands(id, name, slug),
-        category:categories(id, name, slug, icon)
-      `)?.single();
+    const { data, error } = await supabase?.from('products')?.insert([productWithId])?.select('*')?.single();
 
     if (error) {
       throw new Error(error.message);
@@ -129,11 +109,7 @@ export const productService = {
       updated_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase?.from('products')?.update(updatesWithTimestamp)?.eq('id', id)?.select(`
-        *,
-        brand:brands(id, name, slug),
-        category:categories(id, name, slug, icon)
-      `)?.single();
+    const { data, error } = await supabase?.from('products')?.update(updatesWithTimestamp)?.eq('id', id)?.select('*')?.single();
 
     if (error) {
       throw new Error(error.message);

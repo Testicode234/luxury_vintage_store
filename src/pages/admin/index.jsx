@@ -78,14 +78,11 @@ const AdminPanel = () => {
     setEditingProduct(product);
     setFormData({
       name: product?.name || '',
-      brand_id: product?.brand?.id || '',
-      category_id: product?.category?.id || '',
       price: product?.price?.toString() || '',
       original_price: product?.original_price?.toString() || '',
       image_url: product?.image_url || '',
       stock: product?.stock?.toString() || '',
-      features: product?.features?.join(', ') || '',
-      status: product?.status || 'active'
+      features: product?.features?.join(', ') || ''
     });
     setIsModalOpen(true);
   };
@@ -110,14 +107,12 @@ const AdminPanel = () => {
     try {
       const productData = {
         name: formData?.name,
-        brand_id: formData?.brand_id,
-        category_id: formData?.category_id,
         price: parseFloat(formData?.price),
         original_price: formData?.original_price ? parseFloat(formData?.original_price) : null,
         image_url: formData?.image_url,
         stock: parseInt(formData?.stock),
         features: formData?.features?.split(',')?.map(f => f?.trim())?.filter(f => f),
-        status: formData?.status,
+        status: 'active',
         created_by: user?.id,
         rating: 4.5 // Default rating for new products
       };
@@ -229,8 +224,6 @@ const AdminPanel = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -254,12 +247,6 @@ const AdminPanel = () => {
                                 <div className="text-sm text-gray-500">Rating: {product?.rating}/5</div>
                               </div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {product?.category?.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {product?.brand?.name}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <div>${product?.price}</div>
@@ -334,9 +321,6 @@ const AdminPanel = () => {
                       />
                     </div>
 
-                   
-                     
-
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
@@ -369,19 +353,14 @@ const AdminPanel = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Stock</label>
-                        <Input
-                          type="number"
-                          value={formData?.stock}
-                          onChange={(e) => setFormData(prev => ({ ...prev, stock: e?.target?.value }))}
-                          required
-                        />
-                      </div>
-
-                      
-                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Stock</label>
+                      <Input
+                        type="number"
+                        value={formData?.stock}
+                        onChange={(e) => setFormData(prev => ({ ...prev, stock: e?.target?.value }))}
+                        required
+                      />
                     </div>
 
                     <div>

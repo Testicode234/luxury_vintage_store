@@ -100,11 +100,13 @@ const ShoppingCart = () => {
     console.log('Applied promo code:', code);
   };
 
-  const handleProceedToCheckout = async () => {
+  const handleProceedToCheckout = () => {
     setIsCheckoutLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
-    window.location.href = '/checkout-process';
+    // Navigate to checkout page
+    setTimeout(() => {
+      window.location.href = '/checkout-process';
+      setIsCheckoutLoading(false);
+    }, 500);
   };
 
   const subtotal = cartService.getSubtotal();
