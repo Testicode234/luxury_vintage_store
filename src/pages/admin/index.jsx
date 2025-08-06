@@ -18,14 +18,11 @@ const AdminPanel = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    brand_id: '',
-    category_id: '',
     price: '',
     original_price: '',
     image_url: '',
     stock: '',
     features: '',
-    status: 'active'
   });
 
   useEffect(() => {
@@ -68,14 +65,11 @@ const AdminPanel = () => {
     setEditingProduct(null);
     setFormData({
       name: '',
-      brand_id: '',
-      category_id: '',
       price: '',
       original_price: '',
       image_url: '',
       stock: '',
       features: '',
-      status: 'active'
     });
     setIsModalOpen(true);
   };
@@ -340,39 +334,8 @@ const AdminPanel = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <Select
-                          value={formData?.category_id}
-                          onChange={(e) => setFormData(prev => ({ ...prev, category_id: e?.target?.value }))}
-                          required
-                        >
-                          <option value="">Select Category</option>
-                          {categories?.map((category) => (
-                            <option key={category?.id} value={category?.id}>
-                              {category?.name}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Brand</label>
-                        <Select
-                          value={formData?.brand_id}
-                          onChange={(e) => setFormData(prev => ({ ...prev, brand_id: e?.target?.value }))}
-                          required
-                        >
-                          <option value="">Select Brand</option>
-                          {brands?.map((brand) => (
-                            <option key={brand?.id} value={brand?.id}>
-                              {brand?.name}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-                    </div>
+                   
+                     
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -417,17 +380,8 @@ const AdminPanel = () => {
                         />
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <Select
-                          value={formData?.status}
-                          onChange={(e) => setFormData(prev => ({ ...prev, status: e?.target?.value }))}
-                        >
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                          <option value="out_of_stock">Out of Stock</option>
-                        </Select>
-                      </div>
+                      
+                    
                     </div>
 
                     <div>
