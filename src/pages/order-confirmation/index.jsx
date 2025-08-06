@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet';
 import { AuthContext } from '../../contexts/AuthContext';
 import { stripeService } from '../../services/stripeService';
 import { cartService } from '../../services/cartService';
+import { productService } from '../../services/productService';
 import Header from '../../components/ui/Header';
 import OrderHeader from './components/OrderHeader';
 import OrderSummary from './components/OrderSummary';
@@ -25,7 +26,28 @@ const OrderConfirmation = () => {
 
   useEffect(() => {
     loadOrderData();
+    loadRelatedProducts();
   }, [searchParams]);
+
+  const loadRelatedProducts = async () => {
+    try {
+      const productsData = await productService.getProducts();
+      // Get 3 random products as related products
+      const shuffled = productsData.sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 3).map(product => ({
+        id: product.id,
+        name: product.name,
+        brand: product.brand?.name,
+        price: product.price,
+        originalPrice: product.original_price,
+        rating: product.rating,
+        image: product.image_url
+      }));
+      setRelatedProducts(selected);
+    } catch (error) {
+      console.error('Error loading related products:', error);
+    }
+  };
 
   const loadOrderData = async () => {
     try {
@@ -184,41 +206,32 @@ const OrderConfirmation = () => {
     }
   };
 
-  const relatedProducts = [
-    {
-      id: 101,
-      name: "Premium Watch Case",
-      brand: "WatchHub",
-      price: 49.99,
-      originalPrice: 69.99,
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop"
-    },
-    {
-      id: 102,
-      name: "Wireless Charger",
-      brand: "TechHub",
-      price: 89.00,
-      rating: 4.6,
-      image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=400&fit=crop"
-    },
-    {
-      id: 103,
-      name: "Screen Protector",
-      brand: "GuardTech",
-      price: 19.99,
-      rating: 4.4,
-      image: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=400&h=400&fit=crop"
-    }
-  ];
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   const handleResendEmail = async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Email resent successfully');
-        resolve();
-      }, 1000);
-    });
+    try {
+      // In a real implementation, you would call your backend API
+      // For now, we'll simulate the API call
+      const response = await fetch('/api/resend-order-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: orderData?.email,
+          orderNumber: orderData?.orderNumber
+        })
+      });
+      
+      if (response.ok) {
+        return { success: true };
+      } else {
+        throw new Error('Failed to resend email');
+      }
+    } catch (error) {
+      console.error('Error resending email:', error);
+      return { success: false, error: error.message };
+    }
   };
 
   const handlePrintReceipt = () => {
@@ -239,13 +252,27 @@ const OrderConfirmation = () => {
   };
 
   const handleCreateAccount = async (accountData) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        localStorage.setItem('isAuthenticated', 'true');
-        console.log('Account created:', accountData);
-        resolve();
-      }, 1500);
-    });
+    try {
+      // Use real auth service for account creation
+      const { data, error } = await AuthContext.signUp(
+        accountData.email, 
+        accountData.password, 
+        {
+          firstName: accountData.firstName,
+          lastName: accountData.lastName
+        }
+      );
+      
+      if (error) {
+        throw error;
+      }
+      
+      setIsAuthenticated(true);
+      return { success: true };
+    } catch (error) {
+      console.error('Error creating account:', error);
+      return { success: false, error: error.message };
+    }
   };
 
   if (loading) {
