@@ -4,172 +4,105 @@ import { stripeService } from './stripeService';
 export const productService = {
   // Get all products
   async getProducts(filters = {}) {
-    let query = supabase?.from('products')?.select('*')?.eq('status', 'active');
+    if (!supabase) throw new Error('Supabase client not initialized');
 
-    // Apply filters
-    if (filters?.minPrice) {
-      query = query?.gte('price', filters?.minPrice);
-    }
-    
-    if (filters?.maxPrice) {
-      query = query?.lte('price', filters?.maxPrice);
-    }
-    
-    if (filters?.minRating) {
-      query = query?.gte('rating', filters?.minRating);
-    }
-    
-    if (filters?.search) {
-      query = query?.ilike('name', `%${filters?.search}%`);
-    }
+    let query = supabase.from('products').select('*').eq('status', 'active');
 
-    // Apply sorting
-    if (filters?.sortBy) {
-      switch (filters?.sortBy) {
-        case 'price-low':
-          query = query?.order('price', { ascending: true });
-          break;
-        case 'price-high':
-          query = query?.order('price', { ascending: false });
-          break;
-        case 'rating':
-          query = query?.order('rating', { ascending: false });
-          break;
-        case 'name-asc':
-          query = query?.order('name', { ascending: true });
-          break;
-        case 'name-desc':
-          query = query?.order('name', { ascending: false });
-          break;
-        default:
-          query = query?.order('created_at', { ascending: false });
-          break;
-      }
+    if (filters.minPrice) query = query.gte('price', filters.minPrice);
+    if (filters.maxPrice) query = query.lte('price', filters.maxPrice);
+    if (filters.minRating) query = query.gte('rating', filters.minRating);
+    if (filters.search) query = query.ilike('name', `%${filters.search}%`);
+
+    if (filters.sortBy) {
+      const sortOptions = {
+        'price-low': ['price', true],
+        'price-high': ['price', false],
+        'rating': ['rating', false],
+        'name-asc': ['name', true],
+        'name-desc': ['name', false]
+      };
+      const [column, ascending] = sortOptions[filters.sortBy] || ['created_at', false];
+      query = query.order(column, { ascending });
     }
 
     const { data, error } = await query;
-    
+
     if (error) {
-      throw new Error(error.message);
+      console.error('Error fetching products:', error.message);
+      throw new Error(`Error fetching products: ${error.message}`);
     }
-    
+
     return data || [];
   },
 
-  // Get single product by ID
   async getProduct(id) {
-    const { data, error } = await supabase?.from('products')?.select('*')?.eq('id', id)?.single();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
+    const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
+    if (error) throw new Error(`Error fetching product: ${error.message}`);
     return data;
   },
 
-  // Admin: Create product
   async createProduct(product) {
-    // Generate a unique ID for the product
     const productWithId = {
       ...product,
-      id: Date.now(), // Simple ID generation, you can use UUID if needed
+      id: Date.now(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase?.from('products')?.insert([productWithId])?.select('*')?.single();
+    const { data, error } = await supabase.from('products').insert([productWithId]).select('*').single();
+    if (error) throw new Error(`Error creating product: ${error.message}`);
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    // Sync with Stripe
     try {
       const stripeResult = await stripeService.createStripeProduct(data);
-      
-      // Update product with Stripe IDs
-      await supabase?.from('products')?.update({
+      await supabase.from('products').update({
         stripe_product_id: stripeResult.product.id,
         stripe_price_id: stripeResult.price.id
-      })?.eq('id', data.id);
-      
-      console.log('Product synchronized with Stripe:', stripeResult.product.id);
+      }).eq('id', data.id);
     } catch (stripeError) {
-      console.error('Failed to sync with Stripe:', stripeError);
-      // Don't throw error - product was created successfully in our DB
+      console.error('Stripe sync failed:', stripeError);
     }
 
     return data;
   },
 
-  // Admin: Update product
   async updateProduct(id, updates) {
     const updatesWithTimestamp = {
       ...updates,
       updated_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase?.from('products')?.update(updatesWithTimestamp)?.eq('id', id)?.select('*')?.single();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
+    const { data, error } = await supabase.from('products').update(updatesWithTimestamp).eq('id', id).select('*').single();
+    if (error) throw new Error(`Error updating product: ${error.message}`);
     return data;
   },
 
-  // Admin: Delete product
   async deleteProduct(id) {
-    const { error } = await supabase?.from('products')?.delete()?.eq('id', id);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) throw new Error(`Error deleting product: ${error.message}`);
     return true;
   },
 
-  // Get categories
   async getCategories() {
-    const { data, error } = await supabase?.from('categories')?.select('*')?.order('name');
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
+    const { data, error } = await supabase.from('categories').select('*').order('name');
+    if (error) throw new Error(`Error fetching categories: ${error.message}`);
     return data || [];
   },
 
-  // Get brands
   async getBrands() {
-    const { data, error } = await supabase?.from('brands')?.select('*')?.order('name');
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
+    const { data, error } = await supabase.from('brands').select('*').order('name');
+    if (error) throw new Error(`Error fetching brands: ${error.message}`);
     return data || [];
   },
 
-  // Admin: Create category
   async createCategory(category) {
-    const { data, error } = await supabase?.from('categories')?.insert([category])?.select()?.single();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
+    const { data, error } = await supabase.from('categories').insert([category]).select().single();
+    if (error) throw new Error(`Error creating category: ${error.message}`);
     return data;
   },
 
-  // Admin: Create brand
   async createBrand(brand) {
-    const { data, error } = await supabase?.from('brands')?.insert([brand])?.select()?.single();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
+    const { data, error } = await supabase.from('brands').insert([brand]).select().single();
+    if (error) throw new Error(`Error creating brand: ${error.message}`);
     return data;
   }
 };
