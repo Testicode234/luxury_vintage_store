@@ -17,26 +17,37 @@ const ShoppingCart = () => {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   useEffect(() => {
-    const loadCartData = () => {
-      setIsLoading(true);
-      const cart = cartService.getCart();
-      setCartItems(cart);
+    let isMounted = true;
 
-      const savedItemsData = localStorage.getItem('savedItems');
-      if (savedItemsData) {
-        setSavedItems(JSON.parse(savedItemsData));
+    const loadCartData = async () => {
+      try {
+        if (isMounted) setIsLoading(true);
+
+        const enrichedCart = await cartService.getCartItems(); // Await the async call
+        if (isMounted) setCartItems(enrichedCart);
+
+        const savedItemsData = localStorage.getItem('savedItems');
+        if (isMounted && savedItemsData) {
+          setSavedItems(JSON.parse(savedItemsData));
+        }
+      } catch (error) {
+        console.error('Failed to load cart:', error);
+        if (isMounted) setCartItems([]);
+      } finally {
+        if (isMounted) setIsLoading(false); // Always stop loading
       }
-
-      setIsLoading(false);
     };
 
     loadCartData();
 
-    const unsubscribe = cartService.subscribe((updatedCart) => {
-      setCartItems(updatedCart);
+    const unsubscribe = cartService.subscribe(() => {
+      loadCartData();
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const handleUpdateQuantity = (itemId, newQuantity) => {
@@ -61,7 +72,7 @@ const ShoppingCart = () => {
   const handleMoveToCart = (itemId) => {
     const itemToMove = savedItems.find(item => item.id === itemId);
     if (itemToMove) {
-      cartService.addToCart(itemToMove, 1);
+      cartService.addToCart(itemToMove.productId, 1);
       const updatedSaved = savedItems.filter(item => item.id !== itemId);
       localStorage.setItem('savedItems', JSON.stringify(updatedSaved));
       setSavedItems(updatedSaved);
@@ -102,14 +113,16 @@ const ShoppingCart = () => {
 
   const handleProceedToCheckout = () => {
     setIsCheckoutLoading(true);
-    // Navigate to checkout page
     setTimeout(() => {
       window.location.href = '/checkout-process';
       setIsCheckoutLoading(false);
     }, 500);
   };
 
-  const subtotal = cartService.getSubtotal();
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
+    0
+  );
   const shipping = subtotal > 75 ? 0 : 9.99;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
@@ -150,7 +163,6 @@ const ShoppingCart = () => {
 
       <div className="min-h-screen bg-background">
         <Header />
-
         <main className="pt-20 pb-8">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">

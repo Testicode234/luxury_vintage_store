@@ -1,10 +1,13 @@
 import { supabase } from '../lib/supabase';
 
 class CartService {
+  subscribers = [];
+
+  // ---------- PUBLIC METHODS ---------- //
+
   async getCartItems(userId = null) {
     try {
       if (userId) {
-        // Get cart for logged-in user
         const { data, error } = await supabase
           .from('cart_items')
           .select(`
@@ -15,9 +18,7 @@ class CartService {
               price,
               original_price,
               image_url,
-              description,
-              brand:brands(name),
-              category:categories(name)
+              description
             )
           `)
           .eq('user_id', userId);
@@ -25,9 +26,8 @@ class CartService {
         if (error) throw error;
         return this.transformCartItems(data);
       } else {
-        // Get cart from localStorage for guest users
-        const cartData = JSON.parse(localStorage.getItem('cart') || '[]');
-        return cartData;
+        const rawCart = this.getCart();
+        return await this.mergeWithProductData(rawCart);
       }
     } catch (error) {
       console.error('Error getting cart items:', error);
@@ -38,43 +38,30 @@ class CartService {
   async addToCart(productId, quantity = 1, userId = null) {
     try {
       if (userId) {
-        // Add to database cart
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('cart_items')
-          .upsert({
-            user_id: userId,
-            product_id: productId,
-            quantity: quantity
-          }, {
-            onConflict: 'user_id,product_id'
-          });
+          .upsert(
+            { user_id: userId, product_id: productId, quantity },
+            { onConflict: 'user_id,product_id' }
+          );
 
         if (error) throw error;
-        return data;
       } else {
-        // Add to localStorage cart - need to get product data first
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const existingItem = cart.find(item => item.productId === productId);
+        const cart = this.getCart();
+        const existing = cart.find(item => item.productId === productId);
 
-        if (existingItem) {
-          existingItem.quantity += quantity;
+        if (existing) {
+          existing.quantity += quantity;
         } else {
-          // For guest users, we need to store minimal product info
-          // This will be expanded when we fetch product details
-          cart.push({ 
-            id: Date.now(), // temporary ID for cart item
-            productId, 
-            quantity,
-            // These will be populated when product details are fetched
-            name: 'Loading...',
-            price: 0,
-            image: '/assets/images/no_image.png'
+          cart.push({
+            id: Date.now(), // temporary ID
+            productId,
+            quantity
           });
         }
 
         localStorage.setItem('cart', JSON.stringify(cart));
         this.notifySubscribers();
-        return cart;
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -85,22 +72,20 @@ class CartService {
   async updateCartItem(itemId, quantity, userId = null) {
     try {
       if (userId) {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('cart_items')
           .update({ quantity })
           .eq('id', itemId)
           .eq('user_id', userId);
 
         if (error) throw error;
-        return data;
       } else {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const item = cart.find(item => item.id === itemId);
-        if (item) {
-          item.quantity = quantity;
-          localStorage.setItem('cart', JSON.stringify(cart));
-        }
-        return cart;
+        const cart = this.getCart();
+        const updated = cart.map(item =>
+          item.id === itemId ? { ...item, quantity } : item
+        );
+        localStorage.setItem('cart', JSON.stringify(updated));
+        this.notifySubscribers();
       }
     } catch (error) {
       console.error('Error updating cart item:', error);
@@ -119,9 +104,10 @@ class CartService {
 
         if (error) throw error;
       } else {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const updatedCart = cart.filter(item => item.id !== itemId);
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        const cart = this.getCart();
+        const updated = cart.filter(item => item.id !== itemId);
+        localStorage.setItem('cart', JSON.stringify(updated));
+        this.notifySubscribers();
       }
     } catch (error) {
       console.error('Error removing from cart:', error);
@@ -140,6 +126,7 @@ class CartService {
         if (error) throw error;
       } else {
         localStorage.removeItem('cart');
+        this.notifySubscribers();
       }
     } catch (error) {
       console.error('Error clearing cart:', error);
@@ -147,58 +134,37 @@ class CartService {
     }
   }
 
-  transformCartItems(cartItems) {
-    return cartItems.map(item => ({
-      id: item.id,
-      productId: item.product_id,
-      name: item.products.name,
-      price: item.products.price,
-      originalPrice: item.products.original_price,
-      image: item.products.image_url,
-      quantity: item.quantity,
-      variant: item.variant,
-      brand: item.products.brand?.name,
-      category: item.products.category?.name
-    }));
-  }
-
-  // Get cart items (alias for getCartItems for compatibility)
   getCart() {
     return JSON.parse(localStorage.getItem('cart') || '[]');
   }
 
-  // Get total item count in cart
+  updateQuantity(itemId, newQuantity) {
+    const cart = this.getCart();
+    const updated = cart.map(item =>
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
+    );
+    localStorage.setItem('cart', JSON.stringify(updated));
+    this.notifySubscribers();
+  }
+
+  removeItem(itemId) {
+    const cart = this.getCart();
+    const updated = cart.filter(item => item.id !== itemId);
+    localStorage.setItem('cart', JSON.stringify(updated));
+    this.notifySubscribers();
+  }
+
   getItemCount() {
     const cart = this.getCart();
     return cart.reduce((total, item) => total + (item.quantity || 1), 0);
   }
 
-  // Get subtotal of all items in cart
   getSubtotal() {
     const cart = this.getCart();
-    return cart.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 1)), 0);
+    return cart.reduce((total, item) => {
+      return total + ((item.price || 0) * (item.quantity || 1));
+    }, 0);
   }
-
-  // Update quantity of a specific item
-  updateQuantity(itemId, newQuantity) {
-    const cart = this.getCart();
-    const updatedCart = cart.map(item => 
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    );
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-    this.notifySubscribers();
-  }
-
-  // Remove specific item from cart
-  removeItem(itemId) {
-    const cart = this.getCart();
-    const updatedCart = cart.filter(item => item.id !== itemId);
-    localStorage.setItem('cart', JSON.stringify(updatedCart));
-    this.notifySubscribers();
-  }
-
-  // Subscription management for cart updates
-  subscribers = [];
 
   subscribe(callback) {
     this.subscribers.push(callback);
@@ -210,6 +176,54 @@ class CartService {
   notifySubscribers() {
     const cart = this.getCart();
     this.subscribers.forEach(callback => callback(cart));
+  }
+
+  // ---------- PRIVATE HELPERS ---------- //
+
+  transformCartItems(cartItems) {
+    return cartItems.map(item => ({
+      id: item.id,
+      productId: item.product_id,
+      quantity: item.quantity,
+      variant: item.variant || null,
+      name: item.products?.name || 'Unknown Product',
+      price: item.products?.price || 0,
+      originalPrice: item.products?.original_price || null,
+      image: item.products?.image_url || '/assets/images/no_image.png',
+      description: item.products?.description || '',
+    }));
+  }
+
+  async mergeWithProductData(localItems) {
+    const productIds = localItems.map(item => item.productId);
+    if (productIds.length === 0) return [];
+
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('id, name, price, original_price, image_url, description')
+      .in('id', productIds);
+
+    if (error) {
+      console.error('Error fetching product data:', error);
+      return localItems;
+    }
+
+    const productMap = {};
+    products.forEach(p => {
+      productMap[p.id] = p;
+    });
+
+    return localItems.map(item => {
+      const product = productMap[item.productId] || {};
+      return {
+        ...item,
+        name: product.name || 'Unknown Product',
+        price: product.price || 0,
+        originalPrice: product.original_price || null,
+        image: product.image_url || '/assets/images/no_image.png',
+        description: product.description || '',
+      };
+    });
   }
 }
 

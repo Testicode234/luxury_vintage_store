@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = () => {
-    return userProfile?.role === 'admin' || user?.email === 'admin@watchhub.com';
+    return userProfile?.role === 'admin';
   };
 
   const value = {

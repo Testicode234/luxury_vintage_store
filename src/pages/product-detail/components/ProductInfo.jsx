@@ -193,40 +193,11 @@ const ProductInfo = ({
           disabled={product?.stock === 0 || isAddingToCart}
           loading={isAddingToCart}
           fullWidth
-          className="h-12"
+          className="h-12 hover:bg-white hover:text-black"
         >
           {product?.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
         </Button>
 
-        <div className="flex space-x-3">
-          <Button
-            variant="outline"
-            onClick={onAddToWishlist}
-            iconName={isInWishlist ? "Heart" : "Heart"}
-            iconPosition="left"
-            fullWidth
-            className={isInWishlist ? 'text-destructive border-destructive' : ''}
-          >
-            {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-          </Button>
-
-          <Button
-            variant="outline"
-            iconName="Share"
-            iconPosition="left"
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: product?.name,
-                  text: product?.description,
-                  url: window.location?.href
-                });
-              }
-            }}
-          >
-            Share
-          </Button>
-        </div>
       </div>
       {/* Product Specifications */}
       {product?.specifications && (

@@ -127,27 +127,7 @@ const OrderSummary = ({
           </span>
         </div>
       </div>
-      {/* Shipping Info */}
-      <div className="bg-muted/50 rounded-lg p-4 mb-6">
-        <div className="flex items-start space-x-3">
-          <Icon name="Truck" size={20} className="text-muted-foreground mt-0.5" />
-          <div>
-            <h3 className="text-sm font-medium text-foreground mb-1">
-              Free Shipping
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              On orders over $75. Estimated delivery: 3-5 business days
-            </p>
-          </div>
-        </div>
-      </div>
-      {/* Security Badge */}
-      <div className="flex items-center justify-center space-x-2 mb-6 py-3 bg-muted/30 rounded-lg">
-        <Icon name="Shield" size={16} className="text-success" />
-        <span className="text-xs text-muted-foreground">
-          Secure checkout with SSL encryption
-        </span>
-      </div>
+     
       {/* Action Buttons */}
       <div className="space-y-3">
         <Button

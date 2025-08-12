@@ -36,7 +36,7 @@ const UserAuthentication = () => {
           <div className="max-w-md w-full space-y-8">
             <div>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
-                Welcome to WatchHub
+                Welcome to Luxury Vintage
               </h2>
               <p className="mt-2 text-center text-sm text-muted-foreground">
                 {activeTab === 'login' ? 'Sign in to your account' : 'Create your account'}
@@ -71,14 +71,6 @@ const UserAuthentication = () => {
                 </div>
 
                 <SocialAuth onError={setError} />
-              </div>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Demo credentials: <br />
-                  <strong>Admin:</strong> admin@watchhub.com / admin123<br />
-                  <strong>Customer:</strong> customer@watchhub.com / customer123
-                </p>
               </div>
             </div>
           </div>

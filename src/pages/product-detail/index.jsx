@@ -19,7 +19,6 @@ const ProductDetail = () => {
   const productIdParam = urlParamId || searchParams?.get('id');
 
   const [product, setProduct] = useState(null);
-  const [relatedProducts, setRelatedProducts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [showStickyCart, setShowStickyCart] = useState(false);
@@ -66,107 +65,10 @@ const ProductDetail = () => {
   }, [productIdParam]);
 
   useEffect(() => {
-    // Mock data for related products and reviews, to be replaced with actual API calls
-    setRelatedProducts([
-      {
-        id: '3',
-        name: "Samsung Galaxy Watch6 Classic",
-        price: 399.99,
-        originalPrice: 449.99,
-        rating: 4.6,
-        reviewCount: 1234,
-        stock: 8,
-        image: "https://images.unsplash.com/photo-1579586337278-3f436f25d4d6?w=400&h=400&fit=crop"
-      },
-      {
-        id: '4',
-        name: "Garmin Fenix 7X Sapphire Solar",
-        price: 899.99,
-        rating: 4.7,
-        reviewCount: 567,
-        stock: 5,
-        image: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400&h=400&fit=crop"
-      },
-      {
-        id: '5',
-        name: "Fitbit Sense 2",
-        price: 299.95,
-        originalPrice: 349.95,
-        rating: 4.4,
-        reviewCount: 890,
-        stock: 15,
-        image: "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=400&h=400&fit=crop"
-      },
-      {
-        id: '6',
-        name: "TAG Heuer Formula 1",
-        price: 1250.00,
-        rating: 4.8,
-        reviewCount: 234,
-        stock: 2,
-        image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=400&h=400&fit=crop"
-      }
-    ]);
-
-    setReviews([
-      {
-        id: 1,
-        userName: "Sarah Johnson",
-        rating: 5,
-        date: "2024-07-28",
-        title: "Absolutely love this watch!",
-        comment: `I've been using this Apple Watch for about 3 months now and it's been incredible. The battery life is excellent, lasting me a full day even with heavy usage. The health tracking features are very accurate and the new S9 chip makes everything so smooth and responsive.\n\nThe build quality is outstanding and it looks great with both casual and formal outfits. Highly recommend!`,
-        verified: true,
-        helpfulCount: 24,
-        images: []
-      },
-      {
-        id: 2,
-        userName: "Michael Chen",
-        rating: 4,
-        date: "2024-07-25",
-        title: "Great upgrade from Series 7",
-        comment: `Coming from the Series 7, the improvements are noticeable. The display is definitely brighter and the new gesture controls work well most of the time. Battery life seems slightly better too.\n\nOnly minor complaint is that some third-party apps still feel a bit slow, but overall very satisfied with the purchase.`,
-        verified: true,
-        helpfulCount: 18
-      },
-      {
-        id: 3,
-        userName: "Emily Rodriguez",
-        rating: 5,
-        date: "2024-07-20",
-        title: "Perfect for fitness tracking",
-        comment: `As someone who works out regularly, this watch has been a game changer. The workout detection is spot on and the heart rate monitoring feels very accurate. Love the new cycling metrics and the crash detection gives me peace of mind.\n\nThe cellular connectivity is also great for leaving my phone at home during runs.`,
-        verified: true,
-        helpfulCount: 31
-      },
-      {
-        id: 4,
-        userName: "David Kim",
-        rating: 4,
-        date: "2024-07-15",
-        title: "Solid smartwatch with minor issues",
-        comment: `Overall a great watch with excellent build quality and features. The always-on display is bright and clear. However, I've noticed occasional connectivity issues with my iPhone and some apps crash more than I'd like.\n\nStill recommend it, but hoping software updates will address these issues.`,
-        verified: false,
-        helpfulCount: 12
-      },
-      {
-        id: 5,
-        userName: "Lisa Thompson",
-        rating: 5,
-        date: "2024-07-10",
-        title: "Best Apple Watch yet!",
-        comment: `This is my fourth Apple Watch and definitely the best one yet. The performance improvements are significant and the new health features are incredibly useful. The ECG and blood oxygen monitoring work flawlessly.\n\nThe design is timeless and the Sport Loop is very comfortable for all-day wear.`,
-        verified: true,
-        helpfulCount: 45
-      }
-    ]);
-
     // Check wishlist status
     const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
     setIsInWishlist(wishlist?.includes(productIdParam));
   }, [productIdParam]);
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -185,7 +87,6 @@ const ProductDetail = () => {
     setIsAddingToCart(true);
 
     try {
-      // Add variant info if available
       const productWithVariant = {
         ...product,
         variant: [selectedSize, selectedColor?.name].filter(Boolean).join(', ')
@@ -193,7 +94,6 @@ const ProductDetail = () => {
 
       await cartService.addToCart(productWithVariant, quantity);
 
-      // Optional: Show success message
       console.log('Added to cart:', productWithVariant.name);
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 3000);
@@ -332,24 +232,16 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Customer Reviews */}
-          <div className="mb-12">
-            <CustomerReviews
-              reviews={reviews}
-              averageRating={averageRating}
-              totalReviews={reviews?.length}
-            />
-          </div>
-
           {/* Related Products */}
           <div className="mb-8">
             <RelatedProducts
-              products={relatedProducts}
+              referenceProductId={product?.id}
               onAddToCart={handleAddToCart}
             />
           </div>
         </div>
       </main>
+
       {/* Sticky Add to Cart - Mobile */}
       {showStickyCart && (
         <StickyAddToCart
@@ -362,6 +254,7 @@ const ProductDetail = () => {
           isAddingToCart={isAddingToCart}
         />
       )}
+
       {showSuccessMessage && (
         <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg z-50">
           Product added to cart successfully!

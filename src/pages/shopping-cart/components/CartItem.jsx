@@ -9,9 +9,9 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
 
   const handleQuantityChange = async (newQuantity) => {
     if (newQuantity < 1) return;
-    
+
     setIsUpdating(true);
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate API call
     onUpdateQuantity(item?.id, newQuantity);
     setIsUpdating(false);
   };
@@ -25,6 +25,13 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
     onSaveForLater(item?.id);
   };
 
+  const name = item?.name || 'Loading...';
+  const image = item?.image || '/assets/images/no_image.png';
+  const price = item?.price ?? 0;
+  const quantity = item?.quantity ?? 1;
+  const variant = item?.variant || '';
+  const brand = item?.brand || '';
+
   return (
     <div className="bg-card border border-border rounded-lg p-4 md:p-6 transition-smooth">
       {/* Mobile Layout */}
@@ -33,8 +40,8 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
           <div className="flex-shrink-0">
             <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden">
               <Image
-                src={item?.image}
-                alt={item?.name}
+                src={image}
+                alt={name}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -42,37 +49,37 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
           
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-foreground truncate">
-              {item?.name}
+              {name}
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              {item?.brand}
-            </p>
-            {item?.variant && (
+
+            {variant && (
               <p className="text-xs text-muted-foreground mt-1">
-                {item?.variant}
+                {variant}
               </p>
             )}
+
             <div className="flex items-center justify-between mt-3">
               <span className="text-lg font-semibold text-foreground">
-                ${item?.price?.toFixed(2)}
+                ${price.toFixed(2)}
               </span>
+
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
                   size="xs"
-                  onClick={() => handleQuantityChange(item?.quantity - 1)}
-                  disabled={item?.quantity <= 1 || isUpdating}
+                  onClick={() => handleQuantityChange(quantity - 1)}
+                  disabled={quantity <= 1 || isUpdating}
                   className="w-8 h-8 p-0"
                 >
                   <Icon name="Minus" size={14} />
                 </Button>
                 <span className="text-sm font-medium text-foreground min-w-[2rem] text-center">
-                  {isUpdating ? '...' : item?.quantity}
+                  {isUpdating ? '...' : quantity}
                 </span>
                 <Button
                   variant="outline"
                   size="xs"
-                  onClick={() => handleQuantityChange(item?.quantity + 1)}
+                  onClick={() => handleQuantityChange(quantity + 1)}
                   disabled={isUpdating}
                   className="w-8 h-8 p-0"
                 >
@@ -82,19 +89,18 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSaveForLater}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Icon name="Heart" size={16} className="mr-1" />
-              Save for Later
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSaveForLater}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Icon name="Heart" size={16} className="mr-1" />
+            Save for Later
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
@@ -106,29 +112,32 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
           </Button>
         </div>
       </div>
+
       {/* Desktop Layout */}
       <div className="hidden md:block">
         <div className="flex items-center space-x-6">
           <div className="flex-shrink-0">
             <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden">
               <Image
-                src={item?.image}
-                alt={item?.name}
+                src={image}
+                alt={name}
                 className="w-full h-full object-cover"
               />
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="text-base font-medium text-foreground">
-              {item?.name}
+              {name}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {item?.brand}
-            </p>
-            {item?.variant && (
+            {brand && (
               <p className="text-sm text-muted-foreground mt-1">
-                {item?.variant}
+                {brand}
+              </p>
+            )}
+            {variant && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {variant}
               </p>
             )}
             <div className="flex items-center space-x-4 mt-3">
@@ -152,43 +161,44 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
               </Button>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleQuantityChange(item?.quantity - 1)}
-                disabled={item?.quantity <= 1 || isUpdating}
+                onClick={() => handleQuantityChange(quantity - 1)}
+                disabled={quantity <= 1 || isUpdating}
                 className="w-8 h-8 p-0"
               >
                 <Icon name="Minus" size={16} />
               </Button>
               <span className="text-sm font-medium text-foreground min-w-[3rem] text-center">
-                {isUpdating ? '...' : item?.quantity}
+                {isUpdating ? '...' : quantity}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleQuantityChange(item?.quantity + 1)}
+                onClick={() => handleQuantityChange(quantity + 1)}
                 disabled={isUpdating}
                 className="w-8 h-8 p-0"
               >
                 <Icon name="Plus" size={16} />
               </Button>
             </div>
-            
+
             <div className="text-right min-w-[5rem]">
               <span className="text-lg font-semibold text-foreground">
-                ${(item?.price * item?.quantity)?.toFixed(2)}
+                ${(price * quantity).toFixed(2)}
               </span>
               <p className="text-xs text-muted-foreground">
-                ${item?.price?.toFixed(2)} each
+                ${price.toFixed(2)} each
               </p>
             </div>
           </div>
         </div>
       </div>
+
       {/* Remove Confirmation Modal */}
       {showRemoveConfirm && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
