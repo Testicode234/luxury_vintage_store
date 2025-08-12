@@ -2,7 +2,6 @@ import { supabase } from '../lib/supabase';
 import { stripeService } from './stripeService';
 
 export const productService = {
-  // Get all products
   async getProducts(filters = {}) {
     if (!supabase) throw new Error('Supabase client not initialized');
 
