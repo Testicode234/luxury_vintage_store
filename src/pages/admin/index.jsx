@@ -212,25 +212,25 @@ const AdminPanel = () => {
           </div>
 
           {/* Products Table */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-black rounded-lg shadow overflow-hidden">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Products ({products?.length})</h3>
+              <h3 className="text-lg font-medium text-white mb-4">Products ({products?.length})</h3>
 
               {products?.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No products found. Create your first product to get started.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-black">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Product</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Price</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Stock</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-black divide-y divide-gray-200">
                       {products?.map((product) => (
                         <tr key={product?.id}>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -243,18 +243,18 @@ const AdminPanel = () => {
                                 />
                               </div>
                               <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">{product?.name}</div>
-                                <div className="text-sm text-gray-500">Rating: {product?.rating}/5</div>
+                                <div className="text-sm font-medium text-white">{product?.name}</div>
+                                <div className="text-sm text-gray-100">Rating: {product?.rating}/5</div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                             <div>${product?.price}</div>
                             {product?.original_price && (
-                              <div className="text-xs text-gray-500 line-through">${product?.original_price}</div>
+                              <div className="text-xs text-gray-100 line-through">${product?.original_price}</div>
                             )}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                             {product?.stock}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -267,6 +267,7 @@ const AdminPanel = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex items-center justify-end space-x-2">
                               <Button
+                             
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleEditProduct(product)}
@@ -386,7 +387,7 @@ const AdminPanel = () => {
                     type="button"
                     variant="outline"
                     onClick={() => setIsModalOpen(false)}
-                    className="mt-3 w-full inline-flex justify-center sm:mt-0 sm:w-auto"
+                    className="mt-3 w-full inline-flex justify-center sm:mt-0 sm:w-auto text-black"
                   >
                     Cancel
                   </Button>

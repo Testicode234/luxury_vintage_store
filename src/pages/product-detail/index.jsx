@@ -207,11 +207,8 @@ const ProductDetail = () => {
           {/* Product Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
             {/* Product Images */}
-            <div className="order-1">
-              <ProductImageGallery
-                images={product?.images}
-                productName={product?.name}
-              />
+            <div className="order-1">Boolean
+              <ProductImageGallery productId={product?.id} productName={product?.name} />
             </div>
 
             {/* Product Information */}
@@ -232,7 +229,7 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* Related Products */}
+          {/* Related Products */}Boolean
           <div className="mb-8">
             <RelatedProducts
               referenceProductId={product?.id}

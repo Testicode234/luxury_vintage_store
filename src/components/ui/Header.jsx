@@ -180,7 +180,7 @@ const Header = () => {
                   </p>
                   {isAdmin() && (
                     <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="outline" size="sm" className="w-full">
+                      <Button variant="outline" size="sm" className="w-full text-black">
                         Admin Panel
                       </Button>
                     </Link>
@@ -191,7 +191,7 @@ const Header = () => {
                       handleSignOut();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full"
+                    className="w-full text-black"
                   >
                     Sign Out
                   </Button>
