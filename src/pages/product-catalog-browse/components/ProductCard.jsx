@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Image from '../../../components/AppImage';
-import Icon from '../../../components/AppIcon';
-import Button from '../../../components/ui/Button';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Image from "../../../components/AppImage";
+import Icon from "../../../components/AppIcon";
+import Button from "../../../components/ui/Button";
 
 const ProductCard = ({ product, onWishlistToggle }) => {
   const navigate = useNavigate();
-  const [isWishlisted, setIsWishlisted] = useState(product?.isWishlisted || false);
+  const [isWishlisted, setIsWishlisted] = useState(
+    product?.isWishlisted || false
+  );
   const [imageLoading, setImageLoading] = useState(true);
 
   const handleProductClick = () => {
@@ -21,9 +23,9 @@ const ProductCard = ({ product, onWishlistToggle }) => {
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     })?.format(price);
@@ -31,13 +33,16 @@ const ProductCard = ({ product, onWishlistToggle }) => {
 
   const getDiscountPercentage = () => {
     if (product?.originalPrice && product?.price < product?.originalPrice) {
-      return Math.round(((product?.originalPrice - product?.price) / product?.originalPrice) * 100);
+      return Math.round(
+        ((product?.originalPrice - product?.price) / product?.originalPrice) *
+          100
+      );
     }
     return 0;
   };
 
   return (
-    <div 
+    <div
       className="group bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:border-accent hover:shadow-lg hover:shadow-accent/10"
       onClick={handleProductClick}
     >
@@ -48,12 +53,12 @@ const ProductCard = ({ product, onWishlistToggle }) => {
             <Icon name="Image" size={32} className="text-muted-foreground" />
           </div>
         )}
-        
+
         <Image
           src={product?.image}
           alt={product?.name}
           className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
-            imageLoading ? 'opacity-0' : 'opacity-100'
+            imageLoading ? "opacity-0" : "opacity-100"
           }`}
           onLoad={() => setImageLoading(false)}
         />
@@ -72,11 +77,13 @@ const ProductCard = ({ product, onWishlistToggle }) => {
           className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-background transition-all duration-200"
           onClick={handleWishlistClick}
         >
-          <Icon 
-            name={isWishlisted ? "Heart" : "Heart"} 
-            size={18} 
+          <Icon
+            name={isWishlisted ? "Heart" : "Heart"}
+            size={18}
             className={`transition-colors duration-200 ${
-              isWishlisted ? 'text-destructive fill-current' : 'text-muted-foreground hover:text-destructive'
+              isWishlisted
+                ? "text-destructive fill-current"
+                : "text-muted-foreground hover:text-destructive"
             }`}
           />
         </Button>
@@ -105,7 +112,11 @@ const ProductCard = ({ product, onWishlistToggle }) => {
           </span>
           {product?.rating && (
             <div className="flex items-center space-x-1">
-              <Icon name="Star" size={12} className="text-warning fill-current" />
+              <Icon
+                name="Star"
+                size={12}
+                className="text-warning fill-current"
+              />
               <span className="text-xs text-muted-foreground">
                 {product?.rating} ({product?.reviewCount})
               </span>
@@ -120,9 +131,7 @@ const ProductCard = ({ product, onWishlistToggle }) => {
 
         {/* Brand */}
         {product?.brand && (
-          <p className="text-sm text-muted-foreground">
-            {product?.brand}
-          </p>
+          <p className="text-sm text-muted-foreground">{product?.brand}</p>
         )}
 
         {/* Price */}
@@ -130,18 +139,19 @@ const ProductCard = ({ product, onWishlistToggle }) => {
           <span className="text-lg font-semibold text-card-foreground">
             {formatPrice(product?.price)}
           </span>
-          {product?.originalPrice && product?.originalPrice > product?.price && (
-            <span className="text-sm text-muted-foreground line-through">
-              {formatPrice(product?.originalPrice)}
-            </span>
-          )}
+          {product?.originalPrice &&
+            product?.originalPrice > product?.price && (
+              <span className="text-sm text-muted-foreground line-through">
+                {formatPrice(product?.originalPrice)}
+              </span>
+            )}
         </div>
 
         {/* Quick Actions */}
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center space-x-1">
             {product?.features?.slice(0, 2)?.map((feature, index) => (
-              <span 
+              <span
                 key={index}
                 className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-md"
               >
@@ -149,7 +159,7 @@ const ProductCard = ({ product, onWishlistToggle }) => {
               </span>
             ))}
           </div>
-          
+
           {product?.stock > 0 && (
             <Button
               variant="ghost"
@@ -157,7 +167,6 @@ const ProductCard = ({ product, onWishlistToggle }) => {
               className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               onClick={(e) => {
                 e?.stopPropagation();
-                // Add to cart functionality would go here
               }}
             >
               <Icon name="ShoppingCart" size={16} />

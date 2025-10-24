@@ -1,40 +1,41 @@
-import React, { useState } from 'react';
-import Image from '../../../components/AppImage';
-import Icon from '../../../components/AppIcon';
-import Button from '../../../components/ui/Button';
+import React, { useState } from "react";
+import Image from "../../../components/AppImage";
+import Icon from "../../../components/AppIcon";
+import Button from "../../../components/ui/Button";
 
 const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
-  const handleQuantityChange = async (newQuantity) => {
-    if (newQuantity < 1) return;
+  // ✅ Simplified structure (matches cartService)
+  const productId = item?.productId || item?.id;
+  const name = item?.name || "Unnamed Product";
+  const image = item?.image || "/assets/images/no_image.png";
+  const price = Number(item?.price || 0);
+  const quantity = item?.quantity || 1;
 
+  const handleQuantityChange = async (newQuantity) => {
+    if (newQuantity < 1 || !productId) return;
     setIsUpdating(true);
-    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate API call
-    onUpdateQuantity(item?.id, newQuantity);
+    await new Promise((resolve) => setTimeout(resolve, 100)); // simulate async
+    onUpdateQuantity(item.id, newQuantity);
     setIsUpdating(false);
   };
 
   const handleRemove = () => {
-    onRemoveItem(item?.id);
+    if (!productId) return;
+    onRemoveItem(item.id);
     setShowRemoveConfirm(false);
   };
 
   const handleSaveForLater = () => {
-    onSaveForLater(item?.id);
+    if (!productId) return;
+    onSaveForLater(productId);
   };
-
-  const name = item?.name || 'Loading...';
-  const image = item?.image || '/assets/images/no_image.png';
-  const price = item?.price ?? 0;
-  const quantity = item?.quantity ?? 1;
-  const variant = item?.variant || '';
-  const brand = item?.brand || '';
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 md:p-6 transition-smooth">
-      {/* Mobile Layout */}
+      {/* ---------- MOBILE LAYOUT ---------- */}
       <div className="block md:hidden">
         <div className="flex space-x-4">
           <div className="flex-shrink-0">
@@ -46,17 +47,11 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
               />
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-foreground truncate">
               {name}
             </h3>
-
-            {variant && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {variant}
-              </p>
-            )}
 
             <div className="flex items-center justify-between mt-3">
               <span className="text-lg font-semibold text-foreground">
@@ -74,7 +69,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
                   <Icon name="Minus" size={14} />
                 </Button>
                 <span className="text-sm font-medium text-foreground min-w-[2rem] text-center">
-                  {isUpdating ? '...' : quantity}
+                  {isUpdating ? "..." : quantity}
                 </span>
                 <Button
                   variant="outline"
@@ -113,7 +108,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
         </div>
       </div>
 
-      {/* Desktop Layout */}
+      {/* ---------- DESKTOP LAYOUT ---------- */}
       <div className="hidden md:block">
         <div className="flex items-center space-x-6">
           <div className="flex-shrink-0">
@@ -127,19 +122,8 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-medium text-foreground">
-              {name}
-            </h3>
-            {brand && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {brand}
-              </p>
-            )}
-            {variant && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {variant}
-              </p>
-            )}
+            <h3 className="text-base font-medium text-foreground">{name}</h3>
+
             <div className="flex items-center space-x-4 mt-3">
               <Button
                 variant="ghost"
@@ -150,6 +134,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
                 <Icon name="Heart" size={16} className="mr-1" />
                 Save for Later
               </Button>
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -174,7 +159,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
                 <Icon name="Minus" size={16} />
               </Button>
               <span className="text-sm font-medium text-foreground min-w-[3rem] text-center">
-                {isUpdating ? '...' : quantity}
+                {isUpdating ? "..." : quantity}
               </span>
               <Button
                 variant="outline"
@@ -199,7 +184,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
         </div>
       </div>
 
-      {/* Remove Confirmation Modal */}
+      {/* ---------- REMOVE CONFIRMATION MODAL ---------- */}
       {showRemoveConfirm && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-popover border border-border rounded-lg p-6 max-w-sm w-full">
