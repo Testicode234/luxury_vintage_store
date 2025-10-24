@@ -3,18 +3,25 @@ import { supabase } from "../lib/supabase";
 class CartService {
   subscribers = [];
 
-  // ✅ Fetch cart items (either from Supabase or localStorage)
+  // ✅ Fetch cart items (safe UUID handling)
   async getCartItems(userId = null) {
     try {
       const localCart = this.getCart();
       if (!localCart.length) return [];
 
-      // Get all product IDs from local cart
+      // 🛠 Fix: safely extract UUIDs even if nested in an object
       const productIds = localCart
-        .map((item) => item.productId)
+        .map((item) => {
+          const id = item?.productId;
+          if (typeof id === "string") return id;
+          if (id && typeof id === "object" && id.id) return id.id;
+          return null;
+        })
         .filter(Boolean);
 
-      // Fetch matching products from Supabase
+      if (!productIds.length) return [];
+
+      // ✅ Fetch matching products from Supabase
       const { data: products, error } = await supabase
         .from("products")
         .select("id, name, price, image_url")
@@ -22,12 +29,17 @@ class CartService {
 
       if (error) throw error;
 
-      // Map each local item with product info
+      // ✅ Merge local and remote data
       return localCart.map((item) => {
-        const product = products.find((p) => p.id === item.productId);
+        const actualId =
+          typeof item.productId === "string"
+            ? item.productId
+            : item.productId?.id;
+
+        const product = products.find((p) => p.id === actualId);
         return {
           id: item.id,
-          productId: item.productId,
+          productId: actualId,
           name: product?.name || "Unknown Product",
           price: Number(product?.price) || 0,
           image: product?.image_url || "/assets/images/no_image.png",
@@ -43,6 +55,11 @@ class CartService {
   // ✅ Add product to cart
   async addToCart(productId, quantity = 1) {
     try {
+      if (!productId) {
+        console.warn("⚠️ Skipping addToCart: invalid productId");
+        return;
+      }
+
       const cart = this.getCart();
       const existing = cart.find((item) => item.productId === productId);
 
@@ -64,7 +81,7 @@ class CartService {
   }
 
   // ✅ Update quantity of cart item
-  updateCartItem(itemId, quantity) {
+  updateQuantity(itemId, quantity) {
     const cart = this.getCart();
     const updated = cart.map((item) =>
       item.id === itemId ? { ...item, quantity } : item
@@ -74,7 +91,7 @@ class CartService {
   }
 
   // ✅ Remove item
-  removeFromCart(itemId) {
+  removeItem(itemId) {
     const cart = this.getCart().filter((item) => item.id !== itemId);
     localStorage.setItem("cart", JSON.stringify(cart));
     this.notifySubscribers();

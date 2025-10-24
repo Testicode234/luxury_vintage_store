@@ -7,7 +7,6 @@ const CartItem = ({ item, onUpdateQuantity, onRemoveItem, onSaveForLater }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
-  // ✅ Simplified structure (matches cartService)
   const productId = item?.productId || item?.id;
   const name = item?.name || "Unnamed Product";
   const image = item?.image || "/assets/images/no_image.png";
